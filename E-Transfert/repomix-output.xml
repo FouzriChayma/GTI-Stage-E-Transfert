@@ -73,7 +73,10 @@ src/main/java/tn/gti/E_Transfert/service/TransferRequestService.java
 src/main/resources/application.properties
 src/test/java/tn/gti/E_Transfert/ETransfertApplicationTests.java
 uploads/default_document_0ae35194-f678-447d-9913-8ad795ce5154.txt
+uploads/default_document_227d6a59-abbd-4cb3-ab36-9c424d67c101.txt
 uploads/default_document_2dba6b9e-4482-4592-98cf-278cfca3df30.txt
+uploads/default_document_657d3e22-a20f-45ff-b79c-1817f949ddea.txt
+uploads/default_document_873dd830-fecc-413b-a457-a5bcc535d425.txt
 uploads/default_document_ed6ad03f-4251-49af-8725-d4a3852d498c.txt
 </directory_structure>
 
@@ -1791,9 +1794,33 @@ Amount: 800 TND
 Beneficiary: Jane Smith
 </file>
 
+<file path="uploads/default_document_227d6a59-abbd-4cb3-ab36-9c424d67c101.txt">
+Default document for Transfer Request #1
+Created on: 2025-07-03T11:42:01.072444200
+Transfer Type: COMMERCIAL
+Amount: 100.50 USD
+Beneficiary: John Doe
+</file>
+
 <file path="uploads/default_document_2dba6b9e-4482-4592-98cf-278cfca3df30.txt">
 Default document for Transfer Request #1
 Created on: 2025-07-03T10:56:48.418350500
+Transfer Type: COMMERCIAL
+Amount: 100.50 USD
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_657d3e22-a20f-45ff-b79c-1817f949ddea.txt">
+Default document for Transfer Request #3
+Created on: 2025-07-03T11:07:12.879961400
+Transfer Type: CURRENT
+Amount: 100 TND
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_873dd830-fecc-413b-a457-a5bcc535d425.txt">
+Default document for Transfer Request #2
+Created on: 2025-07-03T11:05:54.576341900
 Transfer Type: COMMERCIAL
 Amount: 100.50 USD
 Beneficiary: John Doe

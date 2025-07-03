@@ -114,21 +114,30 @@ public class TransferRequestService {
 
     public TransferRequestResponseDTO updateTransferRequest(Long id, TransferRequestRequestDTO requestDTO) {
         log.info("Updating transfer request with ID: {}", id);
+        log.debug("Request DTO: {}", requestDTO);
+        if (requestDTO.getBeneficiaryId() == null) {
+            throw new TransferException("Beneficiary ID is required for update");
+        }
         try {
             TransferRequest existing = transferRequestRepository.findById(id)
                     .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
+            log.debug("Existing TransferRequest: {}", existing);
+            if (existing.getStatus() != TransferStatus.PENDING) {
+                throw new TransferException("Cannot update transfer request with status: " + existing.getStatus());
+            }
             modelMapper.map(requestDTO, existing);
+            log.debug("After mapping DTO to existing: {}", existing);
             Beneficiary beneficiary = beneficiaryRepository.findById(requestDTO.getBeneficiaryId())
                     .orElseThrow(() -> new TransferException("Beneficiary not found with ID: " + requestDTO.getBeneficiaryId()));
             existing.setBeneficiary(beneficiary);
             TransferRequest saved = transferRequestRepository.save(existing);
+            log.debug("Saved TransferRequest: {}", saved);
             return modelMapper.map(saved, TransferRequestResponseDTO.class);
         } catch (Exception e) {
             log.error("Failed to update transfer request with ID {}: {}", id, e.getMessage(), e);
             throw new TransferException("Failed to update transfer request with ID: " + id, e);
         }
     }
-
     private void validateCreateDTO(TransferRequestRequestDTO requestDTO) {
         if (requestDTO.getBeneficiary() == null) {
             throw new TransferException("Beneficiary is required");
