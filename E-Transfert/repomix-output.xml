@@ -1,0 +1,1810 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitattributes
+.gitignore
+.mvn/wrapper/maven-wrapper.properties
+mvnw
+mvnw.cmd
+pom.xml
+src/main/java/tn/gti/E_Transfert/config/AppConfig.java
+src/main/java/tn/gti/E_Transfert/config/ModelMapperConfig.java
+src/main/java/tn/gti/E_Transfert/controller/GlobalExceptionHandler.java
+src/main/java/tn/gti/E_Transfert/controller/TransferRequestController.java
+src/main/java/tn/gti/E_Transfert/dto/error/ErrorResponse.java
+src/main/java/tn/gti/E_Transfert/dto/request/BeneficiaryCreateDTO.java
+src/main/java/tn/gti/E_Transfert/dto/request/BeneficiaryUpdateDTO.java
+src/main/java/tn/gti/E_Transfert/dto/request/TransferRequestRequestDTO.java
+src/main/java/tn/gti/E_Transfert/dto/response/BeneficiaryResponseDTO.java
+src/main/java/tn/gti/E_Transfert/dto/response/DocumentResponseDTO.java
+src/main/java/tn/gti/E_Transfert/dto/response/TransferRequestResponseDTO.java
+src/main/java/tn/gti/E_Transfert/entity/Beneficiary.java
+src/main/java/tn/gti/E_Transfert/entity/Document.java
+src/main/java/tn/gti/E_Transfert/entity/TransferRequest.java
+src/main/java/tn/gti/E_Transfert/enums/AccountType.java
+src/main/java/tn/gti/E_Transfert/enums/FeeType.java
+src/main/java/tn/gti/E_Transfert/enums/TransferStatus.java
+src/main/java/tn/gti/E_Transfert/enums/TransferType.java
+src/main/java/tn/gti/E_Transfert/ETransfertApplication.java
+src/main/java/tn/gti/E_Transfert/exception/TransferException.java
+src/main/java/tn/gti/E_Transfert/repository/BeneficiaryRepository.java
+src/main/java/tn/gti/E_Transfert/repository/DocumentRepository.java
+src/main/java/tn/gti/E_Transfert/repository/TransferRequestRepository.java
+src/main/java/tn/gti/E_Transfert/service/TransferRequestService.java
+src/main/resources/application.properties
+src/test/java/tn/gti/E_Transfert/ETransfertApplicationTests.java
+uploads/default_document_0ae35194-f678-447d-9913-8ad795ce5154.txt
+uploads/default_document_2dba6b9e-4482-4592-98cf-278cfca3df30.txt
+uploads/default_document_ed6ad03f-4251-49af-8725-d4a3852d498c.txt
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".gitattributes">
+/mvnw text eol=lf
+*.cmd text eol=crlf
+</file>
+
+<file path=".gitignore">
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+</file>
+
+<file path=".mvn/wrapper/maven-wrapper.properties">
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+wrapperVersion=3.3.2
+distributionType=only-script
+distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.10/apache-maven-3.9.10-bin.zip
+</file>
+
+<file path="mvnw">
+#!/bin/sh
+# ----------------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# Apache Maven Wrapper startup batch script, version 3.3.2
+#
+# Optional ENV vars
+# -----------------
+#   JAVA_HOME - location of a JDK home dir, required when download maven via java source
+#   MVNW_REPOURL - repo url base for downloading maven distribution
+#   MVNW_USERNAME/MVNW_PASSWORD - user and password for downloading maven
+#   MVNW_VERBOSE - true: enable verbose log; debug: trace the mvnw script; others: silence the output
+# ----------------------------------------------------------------------------
+
+set -euf
+[ "${MVNW_VERBOSE-}" != debug ] || set -x
+
+# OS specific support.
+native_path() { printf %s\\n "$1"; }
+case "$(uname)" in
+CYGWIN* | MINGW*)
+  [ -z "${JAVA_HOME-}" ] || JAVA_HOME="$(cygpath --unix "$JAVA_HOME")"
+  native_path() { cygpath --path --windows "$1"; }
+  ;;
+esac
+
+# set JAVACMD and JAVACCMD
+set_java_home() {
+  # For Cygwin and MinGW, ensure paths are in Unix format before anything is touched
+  if [ -n "${JAVA_HOME-}" ]; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ]; then
+      # IBM's JDK on AIX uses strange locations for the executables
+      JAVACMD="$JAVA_HOME/jre/sh/java"
+      JAVACCMD="$JAVA_HOME/jre/sh/javac"
+    else
+      JAVACMD="$JAVA_HOME/bin/java"
+      JAVACCMD="$JAVA_HOME/bin/javac"
+
+      if [ ! -x "$JAVACMD" ] || [ ! -x "$JAVACCMD" ]; then
+        echo "The JAVA_HOME environment variable is not defined correctly, so mvnw cannot run." >&2
+        echo "JAVA_HOME is set to \"$JAVA_HOME\", but \"\$JAVA_HOME/bin/java\" or \"\$JAVA_HOME/bin/javac\" does not exist." >&2
+        return 1
+      fi
+    fi
+  else
+    JAVACMD="$(
+      'set' +e
+      'unset' -f command 2>/dev/null
+      'command' -v java
+    )" || :
+    JAVACCMD="$(
+      'set' +e
+      'unset' -f command 2>/dev/null
+      'command' -v javac
+    )" || :
+
+    if [ ! -x "${JAVACMD-}" ] || [ ! -x "${JAVACCMD-}" ]; then
+      echo "The java/javac command does not exist in PATH nor is JAVA_HOME set, so mvnw cannot run." >&2
+      return 1
+    fi
+  fi
+}
+
+# hash string like Java String::hashCode
+hash_string() {
+  str="${1:-}" h=0
+  while [ -n "$str" ]; do
+    char="${str%"${str#?}"}"
+    h=$(((h * 31 + $(LC_CTYPE=C printf %d "'$char")) % 4294967296))
+    str="${str#?}"
+  done
+  printf %x\\n $h
+}
+
+verbose() { :; }
+[ "${MVNW_VERBOSE-}" != true ] || verbose() { printf %s\\n "${1-}"; }
+
+die() {
+  printf %s\\n "$1" >&2
+  exit 1
+}
+
+trim() {
+  # MWRAPPER-139:
+  #   Trims trailing and leading whitespace, carriage returns, tabs, and linefeeds.
+  #   Needed for removing poorly interpreted newline sequences when running in more
+  #   exotic environments such as mingw bash on Windows.
+  printf "%s" "${1}" | tr -d '[:space:]'
+}
+
+# parse distributionUrl and optional distributionSha256Sum, requires .mvn/wrapper/maven-wrapper.properties
+while IFS="=" read -r key value; do
+  case "${key-}" in
+  distributionUrl) distributionUrl=$(trim "${value-}") ;;
+  distributionSha256Sum) distributionSha256Sum=$(trim "${value-}") ;;
+  esac
+done <"${0%/*}/.mvn/wrapper/maven-wrapper.properties"
+[ -n "${distributionUrl-}" ] || die "cannot read distributionUrl property in ${0%/*}/.mvn/wrapper/maven-wrapper.properties"
+
+case "${distributionUrl##*/}" in
+maven-mvnd-*bin.*)
+  MVN_CMD=mvnd.sh _MVNW_REPO_PATTERN=/maven/mvnd/
+  case "${PROCESSOR_ARCHITECTURE-}${PROCESSOR_ARCHITEW6432-}:$(uname -a)" in
+  *AMD64:CYGWIN* | *AMD64:MINGW*) distributionPlatform=windows-amd64 ;;
+  :Darwin*x86_64) distributionPlatform=darwin-amd64 ;;
+  :Darwin*arm64) distributionPlatform=darwin-aarch64 ;;
+  :Linux*x86_64*) distributionPlatform=linux-amd64 ;;
+  *)
+    echo "Cannot detect native platform for mvnd on $(uname)-$(uname -m), use pure java version" >&2
+    distributionPlatform=linux-amd64
+    ;;
+  esac
+  distributionUrl="${distributionUrl%-bin.*}-$distributionPlatform.zip"
+  ;;
+maven-mvnd-*) MVN_CMD=mvnd.sh _MVNW_REPO_PATTERN=/maven/mvnd/ ;;
+*) MVN_CMD="mvn${0##*/mvnw}" _MVNW_REPO_PATTERN=/org/apache/maven/ ;;
+esac
+
+# apply MVNW_REPOURL and calculate MAVEN_HOME
+# maven home pattern: ~/.m2/wrapper/dists/{apache-maven-<version>,maven-mvnd-<version>-<platform>}/<hash>
+[ -z "${MVNW_REPOURL-}" ] || distributionUrl="$MVNW_REPOURL$_MVNW_REPO_PATTERN${distributionUrl#*"$_MVNW_REPO_PATTERN"}"
+distributionUrlName="${distributionUrl##*/}"
+distributionUrlNameMain="${distributionUrlName%.*}"
+distributionUrlNameMain="${distributionUrlNameMain%-bin}"
+MAVEN_USER_HOME="${MAVEN_USER_HOME:-${HOME}/.m2}"
+MAVEN_HOME="${MAVEN_USER_HOME}/wrapper/dists/${distributionUrlNameMain-}/$(hash_string "$distributionUrl")"
+
+exec_maven() {
+  unset MVNW_VERBOSE MVNW_USERNAME MVNW_PASSWORD MVNW_REPOURL || :
+  exec "$MAVEN_HOME/bin/$MVN_CMD" "$@" || die "cannot exec $MAVEN_HOME/bin/$MVN_CMD"
+}
+
+if [ -d "$MAVEN_HOME" ]; then
+  verbose "found existing MAVEN_HOME at $MAVEN_HOME"
+  exec_maven "$@"
+fi
+
+case "${distributionUrl-}" in
+*?-bin.zip | *?maven-mvnd-?*-?*.zip) ;;
+*) die "distributionUrl is not valid, must match *-bin.zip or maven-mvnd-*.zip, but found '${distributionUrl-}'" ;;
+esac
+
+# prepare tmp dir
+if TMP_DOWNLOAD_DIR="$(mktemp -d)" && [ -d "$TMP_DOWNLOAD_DIR" ]; then
+  clean() { rm -rf -- "$TMP_DOWNLOAD_DIR"; }
+  trap clean HUP INT TERM EXIT
+else
+  die "cannot create temp dir"
+fi
+
+mkdir -p -- "${MAVEN_HOME%/*}"
+
+# Download and Install Apache Maven
+verbose "Couldn't find MAVEN_HOME, downloading and installing it ..."
+verbose "Downloading from: $distributionUrl"
+verbose "Downloading to: $TMP_DOWNLOAD_DIR/$distributionUrlName"
+
+# select .zip or .tar.gz
+if ! command -v unzip >/dev/null; then
+  distributionUrl="${distributionUrl%.zip}.tar.gz"
+  distributionUrlName="${distributionUrl##*/}"
+fi
+
+# verbose opt
+__MVNW_QUIET_WGET=--quiet __MVNW_QUIET_CURL=--silent __MVNW_QUIET_UNZIP=-q __MVNW_QUIET_TAR=''
+[ "${MVNW_VERBOSE-}" != true ] || __MVNW_QUIET_WGET='' __MVNW_QUIET_CURL='' __MVNW_QUIET_UNZIP='' __MVNW_QUIET_TAR=v
+
+# normalize http auth
+case "${MVNW_PASSWORD:+has-password}" in
+'') MVNW_USERNAME='' MVNW_PASSWORD='' ;;
+has-password) [ -n "${MVNW_USERNAME-}" ] || MVNW_USERNAME='' MVNW_PASSWORD='' ;;
+esac
+
+if [ -z "${MVNW_USERNAME-}" ] && command -v wget >/dev/null; then
+  verbose "Found wget ... using wget"
+  wget ${__MVNW_QUIET_WGET:+"$__MVNW_QUIET_WGET"} "$distributionUrl" -O "$TMP_DOWNLOAD_DIR/$distributionUrlName" || die "wget: Failed to fetch $distributionUrl"
+elif [ -z "${MVNW_USERNAME-}" ] && command -v curl >/dev/null; then
+  verbose "Found curl ... using curl"
+  curl ${__MVNW_QUIET_CURL:+"$__MVNW_QUIET_CURL"} -f -L -o "$TMP_DOWNLOAD_DIR/$distributionUrlName" "$distributionUrl" || die "curl: Failed to fetch $distributionUrl"
+elif set_java_home; then
+  verbose "Falling back to use Java to download"
+  javaSource="$TMP_DOWNLOAD_DIR/Downloader.java"
+  targetZip="$TMP_DOWNLOAD_DIR/$distributionUrlName"
+  cat >"$javaSource" <<-END
+	public class Downloader extends java.net.Authenticator
+	{
+	  protected java.net.PasswordAuthentication getPasswordAuthentication()
+	  {
+	    return new java.net.PasswordAuthentication( System.getenv( "MVNW_USERNAME" ), System.getenv( "MVNW_PASSWORD" ).toCharArray() );
+	  }
+	  public static void main( String[] args ) throws Exception
+	  {
+	    setDefault( new Downloader() );
+	    java.nio.file.Files.copy( java.net.URI.create( args[0] ).toURL().openStream(), java.nio.file.Paths.get( args[1] ).toAbsolutePath().normalize() );
+	  }
+	}
+	END
+  # For Cygwin/MinGW, switch paths to Windows format before running javac and java
+  verbose " - Compiling Downloader.java ..."
+  "$(native_path "$JAVACCMD")" "$(native_path "$javaSource")" || die "Failed to compile Downloader.java"
+  verbose " - Running Downloader.java ..."
+  "$(native_path "$JAVACMD")" -cp "$(native_path "$TMP_DOWNLOAD_DIR")" Downloader "$distributionUrl" "$(native_path "$targetZip")"
+fi
+
+# If specified, validate the SHA-256 sum of the Maven distribution zip file
+if [ -n "${distributionSha256Sum-}" ]; then
+  distributionSha256Result=false
+  if [ "$MVN_CMD" = mvnd.sh ]; then
+    echo "Checksum validation is not supported for maven-mvnd." >&2
+    echo "Please disable validation by removing 'distributionSha256Sum' from your maven-wrapper.properties." >&2
+    exit 1
+  elif command -v sha256sum >/dev/null; then
+    if echo "$distributionSha256Sum  $TMP_DOWNLOAD_DIR/$distributionUrlName" | sha256sum -c >/dev/null 2>&1; then
+      distributionSha256Result=true
+    fi
+  elif command -v shasum >/dev/null; then
+    if echo "$distributionSha256Sum  $TMP_DOWNLOAD_DIR/$distributionUrlName" | shasum -a 256 -c >/dev/null 2>&1; then
+      distributionSha256Result=true
+    fi
+  else
+    echo "Checksum validation was requested but neither 'sha256sum' or 'shasum' are available." >&2
+    echo "Please install either command, or disable validation by removing 'distributionSha256Sum' from your maven-wrapper.properties." >&2
+    exit 1
+  fi
+  if [ $distributionSha256Result = false ]; then
+    echo "Error: Failed to validate Maven distribution SHA-256, your Maven distribution might be compromised." >&2
+    echo "If you updated your Maven version, you need to update the specified distributionSha256Sum property." >&2
+    exit 1
+  fi
+fi
+
+# unzip and move
+if command -v unzip >/dev/null; then
+  unzip ${__MVNW_QUIET_UNZIP:+"$__MVNW_QUIET_UNZIP"} "$TMP_DOWNLOAD_DIR/$distributionUrlName" -d "$TMP_DOWNLOAD_DIR" || die "failed to unzip"
+else
+  tar xzf${__MVNW_QUIET_TAR:+"$__MVNW_QUIET_TAR"} "$TMP_DOWNLOAD_DIR/$distributionUrlName" -C "$TMP_DOWNLOAD_DIR" || die "failed to untar"
+fi
+printf %s\\n "$distributionUrl" >"$TMP_DOWNLOAD_DIR/$distributionUrlNameMain/mvnw.url"
+mv -- "$TMP_DOWNLOAD_DIR/$distributionUrlNameMain" "$MAVEN_HOME" || [ -d "$MAVEN_HOME" ] || die "fail to move MAVEN_HOME"
+
+clean || :
+exec_maven "$@"
+</file>
+
+<file path="mvnw.cmd">
+<# : batch portion
+@REM ----------------------------------------------------------------------------
+@REM Licensed to the Apache Software Foundation (ASF) under one
+@REM or more contributor license agreements.  See the NOTICE file
+@REM distributed with this work for additional information
+@REM regarding copyright ownership.  The ASF licenses this file
+@REM to you under the Apache License, Version 2.0 (the
+@REM "License"); you may not use this file except in compliance
+@REM with the License.  You may obtain a copy of the License at
+@REM
+@REM    http://www.apache.org/licenses/LICENSE-2.0
+@REM
+@REM Unless required by applicable law or agreed to in writing,
+@REM software distributed under the License is distributed on an
+@REM "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+@REM KIND, either express or implied.  See the License for the
+@REM specific language governing permissions and limitations
+@REM under the License.
+@REM ----------------------------------------------------------------------------
+
+@REM ----------------------------------------------------------------------------
+@REM Apache Maven Wrapper startup batch script, version 3.3.2
+@REM
+@REM Optional ENV vars
+@REM   MVNW_REPOURL - repo url base for downloading maven distribution
+@REM   MVNW_USERNAME/MVNW_PASSWORD - user and password for downloading maven
+@REM   MVNW_VERBOSE - true: enable verbose log; others: silence the output
+@REM ----------------------------------------------------------------------------
+
+@IF "%__MVNW_ARG0_NAME__%"=="" (SET __MVNW_ARG0_NAME__=%~nx0)
+@SET __MVNW_CMD__=
+@SET __MVNW_ERROR__=
+@SET __MVNW_PSMODULEP_SAVE=%PSModulePath%
+@SET PSModulePath=
+@FOR /F "usebackq tokens=1* delims==" %%A IN (`powershell -noprofile "& {$scriptDir='%~dp0'; $script='%__MVNW_ARG0_NAME__%'; icm -ScriptBlock ([Scriptblock]::Create((Get-Content -Raw '%~f0'))) -NoNewScope}"`) DO @(
+  IF "%%A"=="MVN_CMD" (set __MVNW_CMD__=%%B) ELSE IF "%%B"=="" (echo %%A) ELSE (echo %%A=%%B)
+)
+@SET PSModulePath=%__MVNW_PSMODULEP_SAVE%
+@SET __MVNW_PSMODULEP_SAVE=
+@SET __MVNW_ARG0_NAME__=
+@SET MVNW_USERNAME=
+@SET MVNW_PASSWORD=
+@IF NOT "%__MVNW_CMD__%"=="" (%__MVNW_CMD__% %*)
+@echo Cannot start maven from wrapper >&2 && exit /b 1
+@GOTO :EOF
+: end batch / begin powershell #>
+
+$ErrorActionPreference = "Stop"
+if ($env:MVNW_VERBOSE -eq "true") {
+  $VerbosePreference = "Continue"
+}
+
+# calculate distributionUrl, requires .mvn/wrapper/maven-wrapper.properties
+$distributionUrl = (Get-Content -Raw "$scriptDir/.mvn/wrapper/maven-wrapper.properties" | ConvertFrom-StringData).distributionUrl
+if (!$distributionUrl) {
+  Write-Error "cannot read distributionUrl property in $scriptDir/.mvn/wrapper/maven-wrapper.properties"
+}
+
+switch -wildcard -casesensitive ( $($distributionUrl -replace '^.*/','') ) {
+  "maven-mvnd-*" {
+    $USE_MVND = $true
+    $distributionUrl = $distributionUrl -replace '-bin\.[^.]*$',"-windows-amd64.zip"
+    $MVN_CMD = "mvnd.cmd"
+    break
+  }
+  default {
+    $USE_MVND = $false
+    $MVN_CMD = $script -replace '^mvnw','mvn'
+    break
+  }
+}
+
+# apply MVNW_REPOURL and calculate MAVEN_HOME
+# maven home pattern: ~/.m2/wrapper/dists/{apache-maven-<version>,maven-mvnd-<version>-<platform>}/<hash>
+if ($env:MVNW_REPOURL) {
+  $MVNW_REPO_PATTERN = if ($USE_MVND) { "/org/apache/maven/" } else { "/maven/mvnd/" }
+  $distributionUrl = "$env:MVNW_REPOURL$MVNW_REPO_PATTERN$($distributionUrl -replace '^.*'+$MVNW_REPO_PATTERN,'')"
+}
+$distributionUrlName = $distributionUrl -replace '^.*/',''
+$distributionUrlNameMain = $distributionUrlName -replace '\.[^.]*$','' -replace '-bin$',''
+$MAVEN_HOME_PARENT = "$HOME/.m2/wrapper/dists/$distributionUrlNameMain"
+if ($env:MAVEN_USER_HOME) {
+  $MAVEN_HOME_PARENT = "$env:MAVEN_USER_HOME/wrapper/dists/$distributionUrlNameMain"
+}
+$MAVEN_HOME_NAME = ([System.Security.Cryptography.MD5]::Create().ComputeHash([byte[]][char[]]$distributionUrl) | ForEach-Object {$_.ToString("x2")}) -join ''
+$MAVEN_HOME = "$MAVEN_HOME_PARENT/$MAVEN_HOME_NAME"
+
+if (Test-Path -Path "$MAVEN_HOME" -PathType Container) {
+  Write-Verbose "found existing MAVEN_HOME at $MAVEN_HOME"
+  Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
+  exit $?
+}
+
+if (! $distributionUrlNameMain -or ($distributionUrlName -eq $distributionUrlNameMain)) {
+  Write-Error "distributionUrl is not valid, must end with *-bin.zip, but found $distributionUrl"
+}
+
+# prepare tmp dir
+$TMP_DOWNLOAD_DIR_HOLDER = New-TemporaryFile
+$TMP_DOWNLOAD_DIR = New-Item -Itemtype Directory -Path "$TMP_DOWNLOAD_DIR_HOLDER.dir"
+$TMP_DOWNLOAD_DIR_HOLDER.Delete() | Out-Null
+trap {
+  if ($TMP_DOWNLOAD_DIR.Exists) {
+    try { Remove-Item $TMP_DOWNLOAD_DIR -Recurse -Force | Out-Null }
+    catch { Write-Warning "Cannot remove $TMP_DOWNLOAD_DIR" }
+  }
+}
+
+New-Item -Itemtype Directory -Path "$MAVEN_HOME_PARENT" -Force | Out-Null
+
+# Download and Install Apache Maven
+Write-Verbose "Couldn't find MAVEN_HOME, downloading and installing it ..."
+Write-Verbose "Downloading from: $distributionUrl"
+Write-Verbose "Downloading to: $TMP_DOWNLOAD_DIR/$distributionUrlName"
+
+$webclient = New-Object System.Net.WebClient
+if ($env:MVNW_USERNAME -and $env:MVNW_PASSWORD) {
+  $webclient.Credentials = New-Object System.Net.NetworkCredential($env:MVNW_USERNAME, $env:MVNW_PASSWORD)
+}
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$webclient.DownloadFile($distributionUrl, "$TMP_DOWNLOAD_DIR/$distributionUrlName") | Out-Null
+
+# If specified, validate the SHA-256 sum of the Maven distribution zip file
+$distributionSha256Sum = (Get-Content -Raw "$scriptDir/.mvn/wrapper/maven-wrapper.properties" | ConvertFrom-StringData).distributionSha256Sum
+if ($distributionSha256Sum) {
+  if ($USE_MVND) {
+    Write-Error "Checksum validation is not supported for maven-mvnd. `nPlease disable validation by removing 'distributionSha256Sum' from your maven-wrapper.properties."
+  }
+  Import-Module $PSHOME\Modules\Microsoft.PowerShell.Utility -Function Get-FileHash
+  if ((Get-FileHash "$TMP_DOWNLOAD_DIR/$distributionUrlName" -Algorithm SHA256).Hash.ToLower() -ne $distributionSha256Sum) {
+    Write-Error "Error: Failed to validate Maven distribution SHA-256, your Maven distribution might be compromised. If you updated your Maven version, you need to update the specified distributionSha256Sum property."
+  }
+}
+
+# unzip and move
+Expand-Archive "$TMP_DOWNLOAD_DIR/$distributionUrlName" -DestinationPath "$TMP_DOWNLOAD_DIR" | Out-Null
+Rename-Item -Path "$TMP_DOWNLOAD_DIR/$distributionUrlNameMain" -NewName $MAVEN_HOME_NAME | Out-Null
+try {
+  Move-Item -Path "$TMP_DOWNLOAD_DIR/$MAVEN_HOME_NAME" -Destination $MAVEN_HOME_PARENT | Out-Null
+} catch {
+  if (! (Test-Path -Path "$MAVEN_HOME" -PathType Container)) {
+    Write-Error "fail to move MAVEN_HOME"
+  }
+} finally {
+  try { Remove-Item $TMP_DOWNLOAD_DIR -Recurse -Force | Out-Null }
+  catch { Write-Warning "Cannot remove $TMP_DOWNLOAD_DIR" }
+}
+
+Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
+</file>
+
+<file path="pom.xml">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.3</version>
+		<relativePath/>
+	</parent>
+
+	<groupId>tn.gti</groupId>
+	<artifactId>E-Transfert</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>E-Transfert</name>
+	<description>Project E-Transfert</description>
+
+	<properties>
+		<java.version>17</java.version>
+		<mapstruct.version>1.5.5.Final</mapstruct.version>
+	</properties>
+
+	<dependencies>
+		<!-- Spring Boot Dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<!-- MySQL Driver -->
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.28</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- MapStruct -->
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-processor</artifactId>
+			<version>${mapstruct.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Spring Boot Test (JUnit 5 is included by default) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<!-- Exclude JUnit 4 to force JUnit 5 -->
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.modelmapper</groupId>
+			<artifactId>modelmapper</artifactId>
+			<version>3.1.1</version>
+		</dependency>
+
+		<!-- Mockito for JUnit 5 -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>5.12.0</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/config/AppConfig.java">
+package tn.gti.E_Transfert.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**")
+                        .allowedOrigins("http://localhost:4200")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
+    }
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("E-Transfert API")
+                        .version("1.0.0")
+                        .description("API for managing electronic transfer requests"));
+    }
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/config/ModelMapperConfig.java">
+package tn.gti.E_Transfert.config;
+
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class ModelMapperConfig {
+
+    @Bean
+    public ModelMapper modelMapper() {
+        ModelMapper mapper = new ModelMapper();
+        mapper.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.STRICT)
+                .setFieldMatchingEnabled(true)
+                .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE)
+                .setAmbiguityIgnored(true);
+
+        return mapper;
+    }
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/controller/GlobalExceptionHandler.java">
+package tn.gti.E_Transfert.controller;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tn.gti.E_Transfert.dto.error.ErrorResponse;
+import tn.gti.E_Transfert.exception.TransferException;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+        );
+        log.warn("Validation errors: {}", errors);
+        ErrorResponse errorResponse = new ErrorResponse(
+                "VALIDATION_ERROR",
+                "Validation failed for request",
+                errors,
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TransferException.class)
+    public ResponseEntity<ErrorResponse> handleTransferException(TransferException ex) {
+        log.error("Transfer Exception: {}", ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(
+                "TRANSFER_ERROR",
+                ex.getMessage(),
+                null,
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
+        log.error("Unexpected error: {}", ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(
+                "INTERNAL_SERVER_ERROR",
+                "An unexpected error occurred",
+                null,
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/controller/TransferRequestController.java">
+package tn.gti.E_Transfert.controller;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import tn.gti.E_Transfert.dto.request.TransferRequestRequestDTO;
+import tn.gti.E_Transfert.dto.response.DocumentResponseDTO;
+import tn.gti.E_Transfert.dto.response.TransferRequestResponseDTO;
+import tn.gti.E_Transfert.service.TransferRequestService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/transfer-requests")
+@RequiredArgsConstructor
+public class TransferRequestController {
+
+    private final TransferRequestService transferRequestService;
+
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<TransferRequestResponseDTO> createTransferRequest(
+            @RequestPart("transferRequest") @Valid TransferRequestRequestDTO requestDTO,
+            @RequestPart("document") MultipartFile document) {
+        TransferRequestResponseDTO created = transferRequestService.createTransferRequestWithDocument(requestDTO, document);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PostMapping("/json")
+    public ResponseEntity<TransferRequestResponseDTO> createTransferRequestJson(
+            @Valid @RequestBody TransferRequestRequestDTO requestDTO) {
+        TransferRequestResponseDTO created = transferRequestService.createTransferRequestWithDefaultDocument(requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TransferRequestResponseDTO> updateTransferRequest(
+            @PathVariable Long id, @Valid @RequestBody TransferRequestRequestDTO requestDTO) {
+        return ResponseEntity.ok(transferRequestService.updateTransferRequest(id, requestDTO));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TransferRequestResponseDTO>> getAllTransferRequests() {
+        List<TransferRequestResponseDTO> list = transferRequestService.getAllTransferRequests();
+        return list.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TransferRequestResponseDTO> getTransferRequestById(@PathVariable Long id) {
+        return ResponseEntity.ok(transferRequestService.getTransferRequestById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTransferRequest(@PathVariable Long id) {
+        transferRequestService.deleteTransferRequest(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/validate")
+    public ResponseEntity<TransferRequestResponseDTO> validateTransfer(
+            @PathVariable Long id, @RequestParam Long validatorId) {
+        return ResponseEntity.ok(transferRequestService.validateTransferRequest(id, validatorId));
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<TransferRequestResponseDTO> rejectTransfer(
+            @PathVariable Long id, @RequestParam Long validatorId) {
+        return ResponseEntity.ok(transferRequestService.rejectTransferRequest(id, validatorId));
+    }
+
+    @PostMapping("/{id}/request-info")
+    public ResponseEntity<TransferRequestResponseDTO> requestInfo(
+            @PathVariable Long id, @RequestParam Long validatorId) {
+        return ResponseEntity.ok(transferRequestService.requestAdditionalInfo(id, validatorId));
+    }
+
+    @PostMapping("/{id}/documents")
+    public ResponseEntity<String> uploadDocument(
+            @PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        transferRequestService.uploadDocument(id, file);
+        return ResponseEntity.ok("Document uploaded successfully");
+    }
+
+    @GetMapping("/{id}/documents")
+    public ResponseEntity<List<DocumentResponseDTO>> getDocuments(@PathVariable Long id) {
+        return ResponseEntity.ok(transferRequestService.getDocuments(id));
+    }
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/dto/error/ErrorResponse.java">
+package tn.gti.E_Transfert.dto.error;
+
+import lombok.Value;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+
+@Value
+public class ErrorResponse {
+    String errorCode;
+    String message;
+    Map<String, String> details;
+    LocalDateTime timestamp;
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/dto/request/BeneficiaryCreateDTO.java">
+package tn.gti.E_Transfert.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class BeneficiaryCreateDTO {
+    @NotBlank(message = "Beneficiary name is required")
+    @Size(max = 100, message = "Beneficiary name must not exceed 100 characters")
+    String name;
+
+    @NotBlank(message = "Beneficiary country is required")
+    @Size(max = 100, message = "Country must not exceed 100 characters")
+    String country;
+
+    @NotBlank(message = "Destination bank is required")
+    @Size(max = 100, message = "Destination bank must not exceed 100 characters")
+    String destinationBank;
+
+    @Size(max = 34, message = "Bank account must not exceed 34 characters")
+    String bankAccount;
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/dto/request/BeneficiaryUpdateDTO.java">
+package tn.gti.E_Transfert.dto.request;
+
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class BeneficiaryUpdateDTO {
+    Long idBeneficiary;
+
+    @Size(max = 100, message = "Beneficiary name must not exceed 100 characters")
+    String name;
+
+    @Size(max = 100, message = "Country must not exceed 100 characters")
+    String country;
+
+    @Size(max = 100, message = "Destination bank must not exceed 100 characters")
+    String destinationBank;
+
+    @Size(max = 34, message = "Bank account must not exceed 34 characters")
+    String bankAccount;
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/dto/request/TransferRequestRequestDTO.java">
+package tn.gti.E_Transfert.dto.request;
+
+import jakarta.validation.constraints.*;
+import lombok.*;
+import tn.gti.E_Transfert.enums.AccountType;
+import tn.gti.E_Transfert.enums.FeeType;
+import tn.gti.E_Transfert.enums.TransferType;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class TransferRequestRequestDTO {
+    @NotNull(message = "User ID is required", groups = {Create.class, Update.class})
+    @Positive(message = "User ID must be positive", groups = {Create.class, Update.class})
+    Long userId;
+
+    @NotBlank(message = "Commission account number is required", groups = {Create.class, Update.class})
+    @Size(min = 10, max = 34, message = "Commission account number must be between 10 and 34 characters", groups = {Create.class, Update.class})
+    String commissionAccountNumber;
+
+    @NotNull(message = "Commission account type is required", groups = {Create.class, Update.class})
+    AccountType commissionAccountType;
+
+    @NotBlank(message = "Settlement account number is required", groups = {Create.class, Update.class})
+    @Size(min = 10, max = 34, message = "Settlement account number must be between 10 and 34 characters", groups = {Create.class, Update.class})
+    String settlementAccountNumber;
+
+    @NotNull(message = "Settlement account type is required", groups = {Create.class, Update.class})
+    AccountType settlementAccountType;
+
+    @NotNull(message = "Transfer type is required", groups = {Create.class, Update.class})
+    TransferType transferType;
+
+    @NotNull(message = "Issue date is required", groups = {Create.class, Update.class})
+    @PastOrPresent(message = "Issue date cannot be in the future", groups = {Create.class, Update.class})
+    LocalDate issueDate;
+
+    @NotNull(message = "Fee type is required", groups = {Create.class, Update.class})
+    FeeType feeType;
+
+    @NotBlank(message = "Currency is required", groups = {Create.class, Update.class})
+    @Pattern(regexp = "[A-Z]{3}", message = "Currency must be a valid ISO 4217 code", groups = {Create.class, Update.class})
+    String currency;
+
+    @NotNull(message = "Amount is required", groups = {Create.class, Update.class})
+    @DecimalMin(value = " leads to 0.001", message = "Amount must be greater than 0", groups = {Create.class, Update.class})
+    BigDecimal amount;
+
+    @Size(max = 50, message = "Invoice number must not exceed 50 characters", groups = {Create.class, Update.class})
+    String invoiceNumber;
+
+    @PastOrPresent(message = "Invoice date cannot be in the future", groups = {Create.class, Update.class})
+    LocalDate invoiceDate;
+
+    @Size(max = 255, message = "Transfer reason must not exceed 255 characters", groups = {Create.class, Update.class})
+    String transferReason;
+
+    Boolean isNegotiation;
+    Boolean isTermNegotiation;
+    Boolean isFinancing;
+
+    @NotNull(message = "Beneficiary is required", groups = {Create.class})
+    BeneficiaryCreateDTO beneficiary;
+
+    @NotNull(message = "Beneficiary ID is required", groups = {Update.class})
+    Long beneficiaryId;
+
+    // Validation groups
+    public interface Create {}
+    public interface Update {}
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/dto/response/BeneficiaryResponseDTO.java">
+package tn.gti.E_Transfert.dto.response;
+
+import lombok.*;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class BeneficiaryResponseDTO {
+    Long idBeneficiary;
+    String name;
+    String country;
+    String destinationBank;
+    String bankAccount;
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/dto/response/DocumentResponseDTO.java">
+package tn.gti.E_Transfert.dto.response;
+
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class DocumentResponseDTO {
+    Long idDocument;
+    String fileName;
+    String fileType;
+    String filePath;
+    LocalDateTime uploadDate;
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/dto/response/TransferRequestResponseDTO.java">
+package tn.gti.E_Transfert.dto.response;
+
+import lombok.*;
+import tn.gti.E_Transfert.enums.AccountType;
+import tn.gti.E_Transfert.enums.FeeType;
+import tn.gti.E_Transfert.enums.TransferStatus;
+import tn.gti.E_Transfert.enums.TransferType;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class TransferRequestResponseDTO {
+    Long idTransferRequest;
+    Long userId;
+    String commissionAccountNumber;
+    AccountType commissionAccountType;
+    String settlementAccountNumber;
+    AccountType settlementAccountType;
+    TransferType transferType;
+    LocalDate issueDate;
+    FeeType feeType;
+    String currency;
+    BigDecimal amount;
+    String invoiceNumber;
+    LocalDate invoiceDate;
+    String transferReason;
+    Boolean isNegotiation;
+    Boolean isTermNegotiation;
+    Boolean isFinancing;
+    TransferStatus status;
+    LocalDateTime createdAt;
+    LocalDateTime validatedAt;
+    Long validatorId;
+    BeneficiaryResponseDTO beneficiary;
+    List<DocumentResponseDTO> documents;
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/entity/Beneficiary.java">
+package tn.gti.E_Transfert.entity;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+
+@Entity
+@Table(name = "beneficiaries")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Beneficiary {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY) // Only serialize, don't deserialize
+    private Long idBeneficiary;
+
+    @Column(name = "beneficiary_name", nullable = false)
+    @NotBlank(message = "Beneficiary name is required")
+    private String name;
+
+    @Column(name = "beneficiary_country", nullable = false)
+    @NotBlank(message = "Beneficiary country is required")
+    private String country;
+
+    @Column(name = "beneficiary_bank_name", nullable = false)
+    @NotBlank(message = "Destination bank is required")
+    private String destinationBank;
+
+    @Column(name = "beneficiary_bank_account")
+    private String bankAccount;
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/entity/Document.java">
+package tn.gti.E_Transfert.entity;
+
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "documents")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class Document {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long idDocument;
+
+    @Column(nullable = false)
+    private String fileName;
+
+    private String fileType;
+
+    @Column(nullable = false)
+    private String filePath;
+
+    @CreationTimestamp
+    private LocalDateTime uploadDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "transfer_request_id", nullable = false)
+    @JsonIgnore
+    private TransferRequest transferRequest;
+
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/entity/TransferRequest.java">
+package tn.gti.E_Transfert.entity;
+
+import com.fasterxml.jackson.annotation.JsonSetter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import tn.gti.E_Transfert.enums.AccountType;
+import tn.gti.E_Transfert.enums.FeeType;
+import tn.gti.E_Transfert.enums.TransferStatus;
+import tn.gti.E_Transfert.enums.TransferType;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "transfer_requests")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class TransferRequest {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long idTransferRequest;
+
+    @Column(name = "user_id", nullable = false)
+    @NotNull(message = "User ID is required")
+    private Long userId;
+
+    @Column(name = "commission_account_number", nullable = false)
+    @NotBlank(message = "Commission account number is required")
+    private String commissionAccountNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "commission_account_type", nullable = false)
+    @NotNull(message = "Commission account type is required")
+    private AccountType commissionAccountType;
+
+    @Column(name = "settlement_account_number", nullable = false)
+    @NotBlank(message = "Settlement account number is required")
+    private String settlementAccountNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "settlement_account_type", nullable = false)
+    @NotNull(message = "Settlement account type is required")
+    private AccountType settlementAccountType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transfer_type", nullable = false)
+    @NotNull(message = "Transfer type is required")
+    private TransferType transferType;
+
+    @Column(name = "issue_date", nullable = false)
+    @NotNull(message = "Issue date is required")
+    private LocalDate issueDate;
+
+    @JsonSetter("issueDate")
+    public void setIssueDate(String dateStr) {
+        this.issueDate = LocalDate.parse(dateStr);
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fee_type", nullable = false)
+    @NotNull(message = "Fee type is required")
+    private FeeType feeType;
+
+    @Column(name = "currency", nullable = false)
+    @NotBlank(message = "Currency is required")
+    private String currency;
+
+    @Column(name = "amount", nullable = false, precision = 15, scale = 3)
+    @NotNull(message = "Amount is required")
+    @DecimalMin(value = "0.001", message = "Amount must be greater than 0")
+    private BigDecimal amount;
+
+    @Column(name = "invoice_number")
+    private String invoiceNumber;
+
+    @Column(name = "invoice_date")
+    private LocalDate invoiceDate;
+
+    @Column(name = "transfer_reason")
+    private String transferReason;
+
+    @Column(name = "is_negotiation")
+    private Boolean isNegotiation = false;
+
+    @Column(name = "is_term_negotiation")
+    private Boolean isTermNegotiation = false;
+
+    @Column(name = "is_financing")
+    private Boolean isFinancing = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private TransferStatus status = TransferStatus.PENDING;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "validated_at")
+    private LocalDateTime validatedAt;
+
+    @Column(name = "validator_id")
+    private Long validatorId;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "beneficiary_id", nullable = false)
+    @NotNull(message = "Beneficiary is required")
+    private Beneficiary beneficiary;
+
+    @OneToMany(mappedBy = "transferRequest",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    private List<Document> documents = new ArrayList<>();
+
+    public void setTransferType(TransferType transferType) {
+        this.transferType = transferType;
+        if (transferType == TransferType.COMMERCIAL) {
+            // Validation can be moved to service layer if needed
+        }
+    }
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/enums/AccountType.java">
+package tn.gti.E_Transfert.enums;
+
+public enum AccountType {
+    COMMISSION,
+    SETTLEMENT,
+    CURRENT,
+    SAVINGS
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/enums/FeeType.java">
+package tn.gti.E_Transfert.enums;
+
+public enum FeeType {
+    BENEFICIARY_CHARGE,
+    OUR_CHARGE,
+    SHARED
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/enums/TransferStatus.java">
+package tn.gti.E_Transfert.enums;
+
+public enum TransferStatus {
+    PENDING,
+    VALIDATED,
+    REJECTED,
+    INFO_REQUESTED,
+    COMPLETED
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/enums/TransferType.java">
+package tn.gti.E_Transfert.enums;
+
+public enum TransferType {
+    COMMERCIAL,
+    CURRENT
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/ETransfertApplication.java">
+package tn.gti.E_Transfert;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ETransfertApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ETransfertApplication.class, args);
+	}
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/exception/TransferException.java">
+package tn.gti.E_Transfert.exception;
+
+public class TransferException extends RuntimeException {
+    public TransferException(String message) {
+        super(message);
+    }
+
+    public TransferException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/repository/BeneficiaryRepository.java">
+package tn.gti.E_Transfert.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import tn.gti.E_Transfert.entity.Beneficiary;
+
+public interface BeneficiaryRepository extends JpaRepository<Beneficiary, Long> {
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/repository/DocumentRepository.java">
+// src/main/java/tn/gti/E_Transfert/repository/DocumentRepository.java
+package tn.gti.E_Transfert.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import tn.gti.E_Transfert.entity.Document;
+
+public interface DocumentRepository extends JpaRepository<Document, Long> {
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/repository/TransferRequestRepository.java">
+package tn.gti.E_Transfert.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import tn.gti.E_Transfert.entity.TransferRequest;
+
+import java.util.List;
+
+public interface TransferRequestRepository extends JpaRepository<TransferRequest, Long> {
+    @Query("SELECT DISTINCT tr FROM TransferRequest tr " +
+            "LEFT JOIN FETCH tr.beneficiary " +
+            "LEFT JOIN FETCH tr.documents")
+    List<TransferRequest> findAllWithDetails();
+}
+</file>
+
+<file path="src/main/java/tn/gti/E_Transfert/service/TransferRequestService.java">
+package tn.gti.E_Transfert.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import tn.gti.E_Transfert.dto.request.TransferRequestRequestDTO;
+import tn.gti.E_Transfert.dto.response.DocumentResponseDTO;
+import tn.gti.E_Transfert.dto.response.TransferRequestResponseDTO;
+import tn.gti.E_Transfert.entity.Beneficiary;
+import tn.gti.E_Transfert.entity.Document;
+import tn.gti.E_Transfert.entity.TransferRequest;
+import tn.gti.E_Transfert.enums.TransferStatus;
+import tn.gti.E_Transfert.exception.TransferException;
+import tn.gti.E_Transfert.repository.BeneficiaryRepository;
+import tn.gti.E_Transfert.repository.DocumentRepository;
+import tn.gti.E_Transfert.repository.TransferRequestRepository;
+
+import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+@Slf4j
+public class TransferRequestService {
+
+    private final TransferRequestRepository transferRequestRepository;
+    private final BeneficiaryRepository beneficiaryRepository;
+    private final DocumentRepository documentRepository;
+    private final ModelMapper modelMapper;
+
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
+    @PostConstruct
+    public void init() {
+        try {
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+                log.info("Created upload directory: {}", uploadPath);
+            }
+        } catch (IOException e) {
+            log.error("Failed to create upload directory: {}", e.getMessage(), e);
+            throw new TransferException("Failed to initialize upload directory", e);
+        }
+    }
+
+    public TransferRequestResponseDTO createTransferRequestWithDocument(TransferRequestRequestDTO requestDTO, MultipartFile documentFile) {
+        log.info("Creating transfer request with document for user ID: {}", requestDTO.getUserId());
+        validateCreateDTO(requestDTO);
+        try {
+            TransferRequest transferRequest = modelMapper.map(requestDTO, TransferRequest.class);
+            Beneficiary beneficiary = transferRequest.getBeneficiary();
+            beneficiary = beneficiaryRepository.save(beneficiary);
+            transferRequest.setBeneficiary(beneficiary);
+            transferRequest.setStatus(TransferStatus.PENDING);
+            transferRequest.setCreatedAt(LocalDateTime.now());
+            TransferRequest saved = transferRequestRepository.save(transferRequest);
+            Document document = createDocumentFromFile(documentFile, saved);
+            saved.getDocuments().add(document);
+            saved = transferRequestRepository.save(saved);
+            return modelMapper.map(saved, TransferRequestResponseDTO.class);
+        } catch (IOException e) {
+            log.error("Failed to create transfer request with document: {}", e.getMessage(), e);
+            throw new TransferException("Failed to create transfer request with document", e);
+        } catch (Exception e) {
+            log.error("Unexpected error creating transfer request: {}", e.getMessage(), e);
+            throw new TransferException("Unexpected error creating transfer request", e);
+        }
+    }
+    public TransferRequestResponseDTO createTransferRequestWithDefaultDocument(TransferRequestRequestDTO requestDTO) {
+        log.info("Creating transfer request with default document for user ID: {}", requestDTO.getUserId());
+        validateCreateDTO(requestDTO);
+        try {
+            log.info("Mapping DTO to TransferRequest: {}", requestDTO);
+            TransferRequest transferRequest = modelMapper.map(requestDTO, TransferRequest.class);
+            log.info("Mapped TransferRequest: {}", transferRequest);
+            Beneficiary beneficiary = transferRequest.getBeneficiary();
+            log.info("Saving Beneficiary: {}", beneficiary);
+            beneficiary = beneficiaryRepository.save(beneficiary);
+            log.info("Saved Beneficiary: {}", beneficiary);
+            transferRequest.setBeneficiary(beneficiary);
+            transferRequest.setStatus(TransferStatus.PENDING);
+            transferRequest.setCreatedAt(LocalDateTime.now());
+            log.info("Saving TransferRequest: {}", transferRequest);
+            TransferRequest saved = transferRequestRepository.save(transferRequest);
+            log.info("Saved TransferRequest: {}", saved);
+            Document defaultDocument = createDefaultDocument(saved);
+            saved.getDocuments().add(defaultDocument);
+            saved = transferRequestRepository.save(saved);
+            return modelMapper.map(saved, TransferRequestResponseDTO.class);
+        } catch (IOException e) {
+            log.error("Failed to create transfer request with default document: {}", e.getMessage(), e);
+            throw new TransferException("Failed to create transfer request with default document", e);
+        } catch (Exception e) {
+            log.error("Unexpected error creating transfer request: {}", e.getMessage(), e);
+            throw new TransferException("Unexpected error creating transfer request", e);
+        }
+    }
+
+    public TransferRequestResponseDTO updateTransferRequest(Long id, TransferRequestRequestDTO requestDTO) {
+        log.info("Updating transfer request with ID: {}", id);
+        try {
+            TransferRequest existing = transferRequestRepository.findById(id)
+                    .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
+            modelMapper.map(requestDTO, existing);
+            Beneficiary beneficiary = beneficiaryRepository.findById(requestDTO.getBeneficiaryId())
+                    .orElseThrow(() -> new TransferException("Beneficiary not found with ID: " + requestDTO.getBeneficiaryId()));
+            existing.setBeneficiary(beneficiary);
+            TransferRequest saved = transferRequestRepository.save(existing);
+            return modelMapper.map(saved, TransferRequestResponseDTO.class);
+        } catch (Exception e) {
+            log.error("Failed to update transfer request with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to update transfer request with ID: " + id, e);
+        }
+    }
+
+    private void validateCreateDTO(TransferRequestRequestDTO requestDTO) {
+        if (requestDTO.getBeneficiary() == null) {
+            throw new TransferException("Beneficiary is required");
+        }
+        if (requestDTO.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new TransferException("Amount must be greater than 0");
+        }
+    }
+
+    private Document createDocumentFromFile(MultipartFile file, TransferRequest transferRequest) throws IOException {
+        List<String> allowedTypes = List.of("application/pdf", "image/png", "image/jpeg");
+        if (file == null || file.isEmpty()) {
+            log.error("File is null or empty");
+            throw new TransferException("Uploaded file is empty or not provided");
+        }
+        if (!allowedTypes.contains(file.getContentType())) {
+            log.error("Invalid file type: {}. Allowed types are: {}", file.getContentType(), allowedTypes);
+            throw new TransferException("Invalid file type. Only PDF, PNG, and JPEG are allowed");
+        }
+        Path uploadPath = Paths.get(uploadDir);
+        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        Path filePath = uploadPath.resolve(fileName);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        Document document = new Document();
+        document.setFileName(file.getOriginalFilename());
+        document.setFileType(file.getContentType());
+        document.setFilePath(filePath.toString());
+        document.setTransferRequest(transferRequest);
+        document.setUploadDate(LocalDateTime.now());
+        return documentRepository.save(document);
+    }
+
+    private Document createDefaultDocument(TransferRequest transferRequest) throws IOException {
+        Path uploadPath = Paths.get(uploadDir);
+        String defaultContent = "Default document for Transfer Request #" + transferRequest.getIdTransferRequest() +
+                "\nCreated on: " + LocalDateTime.now() +
+                "\nTransfer Type: " + transferRequest.getTransferType() +
+                "\nAmount: " + transferRequest.getAmount() + " " + transferRequest.getCurrency() +
+                "\nBeneficiary: " + transferRequest.getBeneficiary().getName();
+        String fileName = "default_document_" + UUID.randomUUID() + ".txt";
+        Path filePath = uploadPath.resolve(fileName);
+        Files.write(filePath, defaultContent.getBytes());
+        Document document = new Document();
+        document.setFileName("Default Transfer Document.txt");
+        document.setFileType("text/plain");
+        document.setFilePath(filePath.toString());
+        document.setTransferRequest(transferRequest);
+        document.setUploadDate(LocalDateTime.now());
+        return documentRepository.save(document);
+    }
+
+    public List<TransferRequestResponseDTO> getAllTransferRequests() {
+        log.info("Retrieving all transfer requests");
+        try {
+            return transferRequestRepository.findAllWithDetails().stream()
+                    .map(transferRequest -> modelMapper.map(transferRequest, TransferRequestResponseDTO.class))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to retrieve all transfer requests: {}", e.getMessage(), e);
+            throw new TransferException("Failed to retrieve all transfer requests", e);
+        }
+    }
+
+    public TransferRequestResponseDTO getTransferRequestById(Long id) {
+        log.info("Retrieving transfer request with ID: {}", id);
+        try {
+            TransferRequest transferRequest = transferRequestRepository.findById(id)
+                    .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
+            return modelMapper.map(transferRequest, TransferRequestResponseDTO.class);
+        } catch (Exception e) {
+            log.error("Failed to retrieve transfer request with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to retrieve transfer request with ID: " + id, e);
+        }
+    }
+
+    public void deleteTransferRequest(Long id) {
+        log.info("Deleting transfer request with ID: {}", id);
+        try {
+            if (!transferRequestRepository.existsById(id)) {
+                throw new TransferException("Transfer request not found with ID: " + id);
+            }
+            transferRequestRepository.deleteById(id);
+        } catch (Exception e) {
+            log.error("Failed to delete transfer request with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to delete transfer request with ID: " + id, e);
+        }
+    }
+
+    public TransferRequestResponseDTO validateTransferRequest(Long id, Long validatorId) {
+        log.info("Validating transfer request with ID: {} by validator: {}", id, validatorId);
+        try {
+            return transferRequestRepository.findById(id)
+                    .map(transfer -> {
+                        transfer.setStatus(TransferStatus.VALIDATED);
+                        transfer.setValidatorId(validatorId);
+                        transfer.setValidatedAt(LocalDateTime.now());
+                        TransferRequest saved = transferRequestRepository.save(transfer);
+                        return modelMapper.map(saved, TransferRequestResponseDTO.class);
+                    })
+                    .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
+        } catch (Exception e) {
+            log.error("Failed to validate transfer request with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to validate transfer request with ID: " + id, e);
+        }
+    }
+
+    public TransferRequestResponseDTO rejectTransferRequest(Long id, Long validatorId) {
+        log.info("Rejecting transfer request with ID: {} by validator: {}", id, validatorId);
+        try {
+            return transferRequestRepository.findById(id)
+                    .map(transfer -> {
+                        transfer.setStatus(TransferStatus.REJECTED);
+                        transfer.setValidatorId(validatorId);
+                        transfer.setValidatedAt(LocalDateTime.now());
+                        TransferRequest saved = transferRequestRepository.save(transfer);
+                        return modelMapper.map(saved, TransferRequestResponseDTO.class);
+                    })
+                    .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
+        } catch (Exception e) {
+            log.error("Failed to reject transfer request with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to reject transfer request with ID: " + id, e);
+        }
+    }
+
+    public TransferRequestResponseDTO requestAdditionalInfo(Long id, Long validatorId) {
+        log.info("Requesting additional info for transfer request with ID: {} by validator: {}", id, validatorId);
+        try {
+            return transferRequestRepository.findById(id)
+                    .map(transfer -> {
+                        transfer.setStatus(TransferStatus.INFO_REQUESTED);
+                        transfer.setValidatorId(validatorId);
+                        TransferRequest saved = transferRequestRepository.save(transfer);
+                        return modelMapper.map(saved, TransferRequestResponseDTO.class);
+                    })
+                    .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
+        } catch (Exception e) {
+            log.error("Failed to request additional info for transfer request with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to request additional information for transfer request with ID: " + id, e);
+        }
+    }
+
+    public List<DocumentResponseDTO> getDocuments(Long id) {
+        log.info("Retrieving documents for transfer request with ID: {}", id);
+        try {
+            TransferRequest transferRequest = transferRequestRepository.findById(id)
+                    .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
+            return transferRequest.getDocuments().stream()
+                    .map(document -> modelMapper.map(document, DocumentResponseDTO.class))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to retrieve documents for transfer request with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to retrieve documents for transfer request with ID: " + id, e);
+        }
+    }
+
+    @Transactional
+    public void uploadDocument(Long id, MultipartFile file) {
+        log.info("Uploading document for transfer request with ID: {}", id);
+        try {
+            TransferRequest transferRequest = transferRequestRepository.findById(id)
+                    .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
+            Document document = createDocumentFromFile(file, transferRequest);
+            transferRequest.getDocuments().add(document);
+            transferRequestRepository.save(transferRequest);
+        } catch (IOException e) {
+            log.error("Failed to upload document for transfer request with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to store file", e);
+        }
+    }
+}
+</file>
+
+<file path="src/main/resources/application.properties">
+spring.application.name=E-Transfert
+spring.datasource.url=jdbc:mysql://localhost:3306/GTIETRANSFERT?createDatabaseIfNotExist=true
+spring.datasource.username=root
+spring.datasource.password=
+server.port=8083
+spring.jpa.show-sql=true
+spring.jackson.date-format=yyyy-MM-dd
+spring.jackson.serialization.write-dates-as-timestamps=false
+spring.jpa.hibernate.ddl-auto=create
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+# Add file storage configuration
+file.upload-dir=uploads/
+# File upload settings
+logging.level.tn.gti.E_Transfert=DEBUG
+logging.level.org.springframework=DEBUG
+</file>
+
+<file path="src/test/java/tn/gti/E_Transfert/ETransfertApplicationTests.java">
+package tn.gti.E_Transfert;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class ETransfertApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
+</file>
+
+<file path="uploads/default_document_0ae35194-f678-447d-9913-8ad795ce5154.txt">
+Default document for Transfer Request #2
+Created on: 2025-07-03T09:13:11.744465600
+Transfer Type: COMMERCIAL
+Amount: 800 TND
+Beneficiary: Jane Smith
+</file>
+
+<file path="uploads/default_document_2dba6b9e-4482-4592-98cf-278cfca3df30.txt">
+Default document for Transfer Request #1
+Created on: 2025-07-03T10:56:48.418350500
+Transfer Type: COMMERCIAL
+Amount: 100.50 USD
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_ed6ad03f-4251-49af-8725-d4a3852d498c.txt">
+Default document for Transfer Request #1
+Created on: 2025-07-03T08:42:03.017325200
+Transfer Type: COMMERCIAL
+Amount: 100.50 USD
+Beneficiary: John Doe
+</file>
+
+</files>
