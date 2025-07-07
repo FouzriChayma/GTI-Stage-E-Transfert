@@ -69,6 +69,7 @@ src/main/java/tn/gti/E_Transfert/exception/TransferException.java
 src/main/java/tn/gti/E_Transfert/repository/BeneficiaryRepository.java
 src/main/java/tn/gti/E_Transfert/repository/DocumentRepository.java
 src/main/java/tn/gti/E_Transfert/repository/TransferRequestRepository.java
+src/main/java/tn/gti/E_Transfert/repository/TransferRequestSpecification.java
 src/main/java/tn/gti/E_Transfert/service/TransferRequestService.java
 src/main/resources/application.properties
 src/test/java/tn/gti/E_Transfert/ETransfertApplicationTests.java
@@ -659,6 +660,13 @@ Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
 			<artifactId>modelmapper</artifactId>
 			<version>3.1.1</version>
 		</dependency>
+		<!-- iText 7 for PDF Generation -->
+		<!-- iText 7 for PDF Generation -->
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>itext7-core</artifactId>
+			<version>7.1.15</version>
+		</dependency>
 
 		<!-- Mockito for JUnit 5 -->
 		<dependency>
@@ -813,15 +821,30 @@ package tn.gti.E_Transfert.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tn.gti.E_Transfert.dto.request.TransferRequestRequestDTO;
 import tn.gti.E_Transfert.dto.response.DocumentResponseDTO;
 import tn.gti.E_Transfert.dto.response.TransferRequestResponseDTO;
+import tn.gti.E_Transfert.enums.TransferStatus;
+import tn.gti.E_Transfert.enums.TransferType;
+import tn.gti.E_Transfert.exception.TransferException;
 import tn.gti.E_Transfert.service.TransferRequestService;
 
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+
+import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -830,6 +853,31 @@ import java.util.List;
 public class TransferRequestController {
 
     private final TransferRequestService transferRequestService;
+
+    @GetMapping("/search")
+    public ResponseEntity<List<TransferRequestResponseDTO>> searchTransferRequests(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) String commissionAccountNumber,
+            @RequestParam(required = false) TransferType transferType,
+            @RequestParam(required = false) TransferStatus status,
+            @RequestParam(required = false) BigDecimal amount) {
+        List<TransferRequestResponseDTO> list = transferRequestService.searchTransferRequests(userId, commissionAccountNumber, transferType, status, amount);
+        return list.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(list);
+    }
+    @GetMapping("/export")
+    public ResponseEntity<InputStreamResource> exportTransferRequests() {
+        try {
+            ByteArrayInputStream in = transferRequestService.exportToPdf();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=transfer_requests.pdf");
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(new InputStreamResource(in));
+        } catch (Exception e) {
+            throw new TransferException("Failed to export transfer requests to PDF", e);
+        }
+    }
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<TransferRequestResponseDTO> createTransferRequest(
@@ -1451,12 +1499,13 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 package tn.gti.E_Transfert.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import tn.gti.E_Transfert.entity.TransferRequest;
 
 import java.util.List;
 
-public interface TransferRequestRepository extends JpaRepository<TransferRequest, Long> {
+public interface TransferRequestRepository extends JpaRepository<TransferRequest, Long>, JpaSpecificationExecutor<TransferRequest> {
     @Query("SELECT DISTINCT tr FROM TransferRequest tr " +
             "LEFT JOIN FETCH tr.beneficiary " +
             "LEFT JOIN FETCH tr.documents")
@@ -1464,9 +1513,52 @@ public interface TransferRequestRepository extends JpaRepository<TransferRequest
 }
 </file>
 
+<file path="src/main/java/tn/gti/E_Transfert/repository/TransferRequestSpecification.java">
+package tn.gti.E_Transfert.repository;
+
+import org.springframework.data.jpa.domain.Specification;
+import tn.gti.E_Transfert.entity.TransferRequest;
+import tn.gti.E_Transfert.enums.TransferStatus;
+import tn.gti.E_Transfert.enums.TransferType;
+
+import jakarta.persistence.criteria.Predicate;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TransferRequestSpecification {
+
+    public static Specification<TransferRequest> searchByCriteria(Long userId, String commissionAccountNumber,
+                                                                  TransferType transferType, TransferStatus status, BigDecimal amount) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (userId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("userId"), userId));
+            }
+            if (commissionAccountNumber != null && !commissionAccountNumber.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("commissionAccountNumber"), "%" + commissionAccountNumber + "%"));
+            }
+            if (transferType != null) {
+                predicates.add(criteriaBuilder.equal(root.get("transferType"), transferType));
+            }
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+            if (amount != null) {
+                predicates.add(criteriaBuilder.equal(root.get("amount"), amount));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+}
+</file>
+
 <file path="src/main/java/tn/gti/E_Transfert/service/TransferRequestService.java">
 package tn.gti.E_Transfert.service;
 
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -1481,12 +1573,17 @@ import tn.gti.E_Transfert.entity.Beneficiary;
 import tn.gti.E_Transfert.entity.Document;
 import tn.gti.E_Transfert.entity.TransferRequest;
 import tn.gti.E_Transfert.enums.TransferStatus;
+import tn.gti.E_Transfert.enums.TransferType;
 import tn.gti.E_Transfert.exception.TransferException;
 import tn.gti.E_Transfert.repository.BeneficiaryRepository;
 import tn.gti.E_Transfert.repository.DocumentRepository;
 import tn.gti.E_Transfert.repository.TransferRequestRepository;
 
 import jakarta.annotation.PostConstruct;
+import tn.gti.E_Transfert.repository.TransferRequestSpecification;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -1498,6 +1595,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.property.TextAlignment;
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -1525,7 +1628,70 @@ public class TransferRequestService {
             throw new TransferException("Failed to initialize upload directory", e);
         }
     }
+    public List<TransferRequestResponseDTO> searchTransferRequests(Long userId, String commissionAccountNumber,
+                                                                   TransferType transferType, TransferStatus status, BigDecimal amount) {
+        log.info("Searching transfer requests with criteria: userId={}, commissionAccountNumber={}, transferType={}, status={}, amount={}",
+                userId, commissionAccountNumber, transferType, status, amount);
+        try {
+            return transferRequestRepository.findAll(TransferRequestSpecification.searchByCriteria(userId, commissionAccountNumber, transferType, status, amount))
+                    .stream()
+                    .map(transferRequest -> modelMapper.map(transferRequest, TransferRequestResponseDTO.class))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to search transfer requests: {}", e.getMessage(), e);
+            throw new TransferException("Failed to search transfer requests", e);
+        }
+    }
 
+    public ByteArrayInputStream exportToPdf() {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             PdfWriter writer = new PdfWriter(out);
+             PdfDocument pdf = new PdfDocument(writer)) {
+
+            PdfCanvas canvas = new PdfCanvas(pdf.addNewPage());
+            canvas.beginText()
+                    .setFontAndSize(com.itextpdf.kernel.font.PdfFontFactory.createFont(), 12)
+                    .moveText(50, 750)
+                    .showText("Transfer Requests Report")
+                    .moveText(0, -20)
+                    .showText("Generated on: " + LocalDateTime.now())
+                    .moveText(0, -20);
+
+            List<TransferRequestResponseDTO> transferRequests = getAllTransferRequests();
+            if (transferRequests == null) {
+                canvas.showText("No transfer requests available for export");
+            } else {
+                float y = 700;
+                for (TransferRequestResponseDTO tr : transferRequests) {
+                    if (tr != null) {
+                        String line = String.format("User ID: %s, Account: %s, Type: %s, Amount: %s %s, Status: %s, Docs: %d",
+                                tr.getUserId() != null ? tr.getUserId() : "",
+                                tr.getCommissionAccountNumber() != null ? tr.getCommissionAccountNumber() : "",
+                                tr.getTransferType() != null ? tr.getTransferType().toString() : "",
+                                tr.getAmount() != null ? tr.getAmount().toString() : "",
+                                tr.getCurrency() != null ? tr.getCurrency() : "",
+                                tr.getStatus() != null ? tr.getStatus().toString() : "",
+                                tr.getDocuments() != null ? tr.getDocuments().size() : 0);
+                        canvas.moveText(50, y -= 20).showText(line);
+                        if (y < 50) {
+                            pdf.addNewPage();
+                            canvas = new PdfCanvas(pdf.getLastPage());
+                            canvas.beginText().setFontAndSize(com.itextpdf.kernel.font.PdfFontFactory.createFont(), 12).moveText(50, 750);
+                            y = 700;
+                        }
+                    }
+                }
+            }
+
+            canvas.endText();
+            pdf.close();
+
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (Exception e) {
+            log.error("Failed to generate PDF: {}", e.getMessage(), e);
+            throw new TransferException("Failed to generate PDF", e);
+        }
+    }
     public TransferRequestResponseDTO createTransferRequestWithDocument(TransferRequestRequestDTO requestDTO, MultipartFile documentFile) {
         log.info("Creating transfer request with document for user ID: {}", requestDTO.getUserId());
         validateCreateDTO(requestDTO);
