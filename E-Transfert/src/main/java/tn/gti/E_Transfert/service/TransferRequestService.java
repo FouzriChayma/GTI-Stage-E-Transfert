@@ -14,12 +14,15 @@ import tn.gti.E_Transfert.entity.Beneficiary;
 import tn.gti.E_Transfert.entity.Document;
 import tn.gti.E_Transfert.entity.TransferRequest;
 import tn.gti.E_Transfert.enums.TransferStatus;
+import tn.gti.E_Transfert.enums.TransferType;
 import tn.gti.E_Transfert.exception.TransferException;
 import tn.gti.E_Transfert.repository.BeneficiaryRepository;
 import tn.gti.E_Transfert.repository.DocumentRepository;
 import tn.gti.E_Transfert.repository.TransferRequestRepository;
 
 import jakarta.annotation.PostConstruct;
+import tn.gti.E_Transfert.repository.TransferRequestSpecification;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -56,6 +59,20 @@ public class TransferRequestService {
         } catch (IOException e) {
             log.error("Failed to create upload directory: {}", e.getMessage(), e);
             throw new TransferException("Failed to initialize upload directory", e);
+        }
+    }
+    public List<TransferRequestResponseDTO> searchTransferRequests(Long userId, String commissionAccountNumber,
+                                                                   TransferType transferType, TransferStatus status, BigDecimal amount) {
+        log.info("Searching transfer requests with criteria: userId={}, commissionAccountNumber={}, transferType={}, status={}, amount={}",
+                userId, commissionAccountNumber, transferType, status, amount);
+        try {
+            return transferRequestRepository.findAll(TransferRequestSpecification.searchByCriteria(userId, commissionAccountNumber, transferType, status, amount))
+                    .stream()
+                    .map(transferRequest -> modelMapper.map(transferRequest, TransferRequestResponseDTO.class))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to search transfer requests: {}", e.getMessage(), e);
+            throw new TransferException("Failed to search transfer requests", e);
         }
     }
 
@@ -305,6 +322,31 @@ public class TransferRequestService {
         } catch (IOException e) {
             log.error("Failed to upload document for transfer request with ID {}: {}", id, e.getMessage(), e);
             throw new TransferException("Failed to store file", e);
+        }
+    }
+
+    @Transactional
+    public void deleteDocument(Long transferRequestId, Long documentId) {
+        log.info("Deleting document with ID: {} for transfer request with ID: {}", documentId, transferRequestId);
+        try {
+            TransferRequest transferRequest = transferRequestRepository.findById(transferRequestId)
+                    .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + transferRequestId));
+            Document document = documentRepository.findById(documentId)
+                    .orElseThrow(() -> new TransferException("Document not found with ID: " + documentId));
+            if (!document.getTransferRequest().getIdTransferRequest().equals(transferRequestId)) {
+                throw new TransferException("Document with ID: " + documentId + " does not belong to transfer request with ID: " + transferRequestId);
+            }
+            transferRequest.getDocuments().remove(document);
+            documentRepository.delete(document);
+            try {
+                Files.deleteIfExists(Paths.get(document.getFilePath()));
+                log.info("Deleted file from filesystem: {}", document.getFilePath());
+            } catch (IOException e) {
+                log.warn("Failed to delete file from filesystem: {}", document.getFilePath(), e);
+            }
+        } catch (Exception e) {
+            log.error("Failed to delete document with ID {} for transfer request with ID {}: {}", documentId, transferRequestId, e.getMessage(), e);
+            throw new TransferException("Failed to delete document with ID: " + documentId, e);
         }
     }
 }

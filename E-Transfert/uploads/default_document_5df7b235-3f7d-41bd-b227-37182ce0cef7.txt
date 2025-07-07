@@ -1,0 +1,5 @@
+Default document for Transfer Request #6
+Created on: 2025-07-07T09:08:51.271655700
+Transfer Type: CURRENT
+Amount: 800 TND
+Beneficiary: John Doe

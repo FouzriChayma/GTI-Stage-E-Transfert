@@ -75,9 +75,18 @@ src/test/java/tn/gti/E_Transfert/ETransfertApplicationTests.java
 uploads/default_document_0ae35194-f678-447d-9913-8ad795ce5154.txt
 uploads/default_document_227d6a59-abbd-4cb3-ab36-9c424d67c101.txt
 uploads/default_document_2dba6b9e-4482-4592-98cf-278cfca3df30.txt
+uploads/default_document_41225eaf-06e2-4d64-9eaa-9d4b30ada72e.txt
+uploads/default_document_4a52f3f1-5339-4950-8340-16588bd9f19c.txt
+uploads/default_document_5df7b235-3f7d-41bd-b227-37182ce0cef7.txt
 uploads/default_document_657d3e22-a20f-45ff-b79c-1817f949ddea.txt
+uploads/default_document_78de72cc-21f7-4618-8205-ab83eac71cb7.txt
+uploads/default_document_79554139-dc28-41d9-8f93-ca44dba1c2e7.txt
 uploads/default_document_873dd830-fecc-413b-a457-a5bcc535d425.txt
+uploads/default_document_a343838e-f9b4-4800-82ec-95c7e89a9c4d.txt
+uploads/default_document_afc9aa5c-b090-4d5e-aaf0-8e8be38429cd.txt
+uploads/default_document_bedf005d-b7aa-477f-912b-13cfead36ee5.txt
 uploads/default_document_ed6ad03f-4251-49af-8725-d4a3852d498c.txt
+uploads/default_document_ee5bb33d-b26e-4554-b461-5fe1ba812e73.txt
 </directory_structure>
 
 <files>
@@ -717,6 +726,8 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tn.gti.E_Transfert.dto.request.TransferRequestRequestDTO;
+import tn.gti.E_Transfert.entity.TransferRequest;
 
 @Configuration
 public class ModelMapperConfig {
@@ -728,8 +739,8 @@ public class ModelMapperConfig {
                 .setMatchingStrategy(MatchingStrategies.STRICT)
                 .setFieldMatchingEnabled(true)
                 .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE)
-                .setAmbiguityIgnored(true);
-
+                .setAmbiguityIgnored(true)
+                .setSkipNullEnabled(true); // Skip null values during mapping
         return mapper;
     }
 }
@@ -886,6 +897,12 @@ public class TransferRequestController {
     @GetMapping("/{id}/documents")
     public ResponseEntity<List<DocumentResponseDTO>> getDocuments(@PathVariable Long id) {
         return ResponseEntity.ok(transferRequestService.getDocuments(id));
+    }
+
+    @DeleteMapping("/{id}/documents/{documentId}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long id, @PathVariable Long documentId) {
+        transferRequestService.deleteDocument(id, documentId);
+        return ResponseEntity.noContent().build();
     }
 }
 </file>
@@ -1564,21 +1581,30 @@ public class TransferRequestService {
 
     public TransferRequestResponseDTO updateTransferRequest(Long id, TransferRequestRequestDTO requestDTO) {
         log.info("Updating transfer request with ID: {}", id);
+        log.debug("Request DTO: {}", requestDTO);
+        if (requestDTO.getBeneficiaryId() == null) {
+            throw new TransferException("Beneficiary ID is required for update");
+        }
         try {
             TransferRequest existing = transferRequestRepository.findById(id)
                     .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
+            log.debug("Existing TransferRequest: {}", existing);
+            if (existing.getStatus() != TransferStatus.PENDING) {
+                throw new TransferException("Cannot update transfer request with status: " + existing.getStatus());
+            }
             modelMapper.map(requestDTO, existing);
+            log.debug("After mapping DTO to existing: {}", existing);
             Beneficiary beneficiary = beneficiaryRepository.findById(requestDTO.getBeneficiaryId())
                     .orElseThrow(() -> new TransferException("Beneficiary not found with ID: " + requestDTO.getBeneficiaryId()));
             existing.setBeneficiary(beneficiary);
             TransferRequest saved = transferRequestRepository.save(existing);
+            log.debug("Saved TransferRequest: {}", saved);
             return modelMapper.map(saved, TransferRequestResponseDTO.class);
         } catch (Exception e) {
             log.error("Failed to update transfer request with ID {}: {}", id, e.getMessage(), e);
             throw new TransferException("Failed to update transfer request with ID: " + id, e);
         }
     }
-
     private void validateCreateDTO(TransferRequestRequestDTO requestDTO) {
         if (requestDTO.getBeneficiary() == null) {
             throw new TransferException("Beneficiary is required");
@@ -1748,6 +1774,31 @@ public class TransferRequestService {
             throw new TransferException("Failed to store file", e);
         }
     }
+
+    @Transactional
+    public void deleteDocument(Long transferRequestId, Long documentId) {
+        log.info("Deleting document with ID: {} for transfer request with ID: {}", documentId, transferRequestId);
+        try {
+            TransferRequest transferRequest = transferRequestRepository.findById(transferRequestId)
+                    .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + transferRequestId));
+            Document document = documentRepository.findById(documentId)
+                    .orElseThrow(() -> new TransferException("Document not found with ID: " + documentId));
+            if (!document.getTransferRequest().getIdTransferRequest().equals(transferRequestId)) {
+                throw new TransferException("Document with ID: " + documentId + " does not belong to transfer request with ID: " + transferRequestId);
+            }
+            transferRequest.getDocuments().remove(document);
+            documentRepository.delete(document);
+            try {
+                Files.deleteIfExists(Paths.get(document.getFilePath()));
+                log.info("Deleted file from filesystem: {}", document.getFilePath());
+            } catch (IOException e) {
+                log.warn("Failed to delete file from filesystem: {}", document.getFilePath(), e);
+            }
+        } catch (Exception e) {
+            log.error("Failed to delete document with ID {} for transfer request with ID {}: {}", documentId, transferRequestId, e.getMessage(), e);
+            throw new TransferException("Failed to delete document with ID: " + documentId, e);
+        }
+    }
 }
 </file>
 
@@ -1760,7 +1811,7 @@ server.port=8083
 spring.jpa.show-sql=true
 spring.jackson.date-format=yyyy-MM-dd
 spring.jackson.serialization.write-dates-as-timestamps=false
-spring.jpa.hibernate.ddl-auto=create
+spring.jpa.hibernate.ddl-auto=update
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=10MB
 # Add file storage configuration
@@ -1810,11 +1861,51 @@ Amount: 100.50 USD
 Beneficiary: John Doe
 </file>
 
+<file path="uploads/default_document_41225eaf-06e2-4d64-9eaa-9d4b30ada72e.txt">
+Default document for Transfer Request #2
+Created on: 2025-07-03T11:54:17.256196500
+Transfer Type: COMMERCIAL
+Amount: 100.50 USD
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_4a52f3f1-5339-4950-8340-16588bd9f19c.txt">
+Default document for Transfer Request #2
+Created on: 2025-07-03T11:51:09.358320400
+Transfer Type: COMMERCIAL
+Amount: 100.50 USD
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_5df7b235-3f7d-41bd-b227-37182ce0cef7.txt">
+Default document for Transfer Request #6
+Created on: 2025-07-07T09:08:51.271655700
+Transfer Type: CURRENT
+Amount: 800 TND
+Beneficiary: John Doe
+</file>
+
 <file path="uploads/default_document_657d3e22-a20f-45ff-b79c-1817f949ddea.txt">
 Default document for Transfer Request #3
 Created on: 2025-07-03T11:07:12.879961400
 Transfer Type: CURRENT
 Amount: 100 TND
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_78de72cc-21f7-4618-8205-ab83eac71cb7.txt">
+Default document for Transfer Request #1
+Created on: 2025-07-03T11:52:46.238043700
+Transfer Type: COMMERCIAL
+Amount: 100.50 USD
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_79554139-dc28-41d9-8f93-ca44dba1c2e7.txt">
+Default document for Transfer Request #1
+Created on: 2025-07-03T11:51:05.286837700
+Transfer Type: COMMERCIAL
+Amount: 100.50 USD
 Beneficiary: John Doe
 </file>
 
@@ -1826,11 +1917,43 @@ Amount: 100.50 USD
 Beneficiary: John Doe
 </file>
 
+<file path="uploads/default_document_a343838e-f9b4-4800-82ec-95c7e89a9c4d.txt">
+Default document for Transfer Request #3
+Created on: 2025-07-03T11:57:37.196269600
+Transfer Type: COMMERCIAL
+Amount: 100.50 USD
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_afc9aa5c-b090-4d5e-aaf0-8e8be38429cd.txt">
+Default document for Transfer Request #7
+Created on: 2025-07-07T09:16:28.432321700
+Transfer Type: CURRENT
+Amount: 800 TND
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_bedf005d-b7aa-477f-912b-13cfead36ee5.txt">
+Default document for Transfer Request #5
+Created on: 2025-07-07T08:34:31.689771400
+Transfer Type: CURRENT
+Amount: 800 TND
+Beneficiary: John Doe
+</file>
+
 <file path="uploads/default_document_ed6ad03f-4251-49af-8725-d4a3852d498c.txt">
 Default document for Transfer Request #1
 Created on: 2025-07-03T08:42:03.017325200
 Transfer Type: COMMERCIAL
 Amount: 100.50 USD
+Beneficiary: John Doe
+</file>
+
+<file path="uploads/default_document_ee5bb33d-b26e-4554-b461-5fe1ba812e73.txt">
+Default document for Transfer Request #4
+Created on: 2025-07-03T12:54:46.434447100
+Transfer Type: COMMERCIAL
+Amount: 800 TND
 Beneficiary: John Doe
 </file>
 

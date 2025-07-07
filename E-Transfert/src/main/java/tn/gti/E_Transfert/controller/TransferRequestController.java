@@ -9,8 +9,11 @@ import org.springframework.web.multipart.MultipartFile;
 import tn.gti.E_Transfert.dto.request.TransferRequestRequestDTO;
 import tn.gti.E_Transfert.dto.response.DocumentResponseDTO;
 import tn.gti.E_Transfert.dto.response.TransferRequestResponseDTO;
+import tn.gti.E_Transfert.enums.TransferStatus;
+import tn.gti.E_Transfert.enums.TransferType;
 import tn.gti.E_Transfert.service.TransferRequestService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -19,6 +22,17 @@ import java.util.List;
 public class TransferRequestController {
 
     private final TransferRequestService transferRequestService;
+
+    @GetMapping("/search")
+    public ResponseEntity<List<TransferRequestResponseDTO>> searchTransferRequests(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) String commissionAccountNumber,
+            @RequestParam(required = false) TransferType transferType,
+            @RequestParam(required = false) TransferStatus status,
+            @RequestParam(required = false) BigDecimal amount) {
+        List<TransferRequestResponseDTO> list = transferRequestService.searchTransferRequests(userId, commissionAccountNumber, transferType, status, amount);
+        return list.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(list);
+    }
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<TransferRequestResponseDTO> createTransferRequest(
@@ -86,5 +100,11 @@ public class TransferRequestController {
     @GetMapping("/{id}/documents")
     public ResponseEntity<List<DocumentResponseDTO>> getDocuments(@PathVariable Long id) {
         return ResponseEntity.ok(transferRequestService.getDocuments(id));
+    }
+
+    @DeleteMapping("/{id}/documents/{documentId}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long id, @PathVariable Long documentId) {
+        transferRequestService.deleteDocument(id, documentId);
+        return ResponseEntity.noContent().build();
     }
 }
