@@ -48,7 +48,6 @@ mvnw.cmd
 pom.xml
 src/main/java/tn/gti/E_Transfert/config/AppConfig.java
 src/main/java/tn/gti/E_Transfert/config/ModelMapperConfig.java
-src/main/java/tn/gti/E_Transfert/config/SecurityConfig.java
 src/main/java/tn/gti/E_Transfert/controller/AuthController.java
 src/main/java/tn/gti/E_Transfert/controller/GlobalExceptionHandler.java
 src/main/java/tn/gti/E_Transfert/controller/TransferRequestController.java
@@ -81,8 +80,6 @@ src/main/java/tn/gti/E_Transfert/repository/TransferRequestSpecification.java
 src/main/java/tn/gti/E_Transfert/repository/UserRepository.java
 src/main/java/tn/gti/E_Transfert/service/TransferRequestService.java
 src/main/java/tn/gti/E_Transfert/service/UserService.java
-src/main/java/tn/gti/E_Transfert/util/JwtAuthenticationFilter.java
-src/main/java/tn/gti/E_Transfert/util/JwtUtil.java
 src/main/resources/application.properties
 src/test/java/tn/gti/E_Transfert/ETransfertApplicationTests.java
 uploads/default_document_0ae35194-f678-447d-9913-8ad795ce5154.txt
@@ -680,24 +677,22 @@ Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Spring Security -->
+		<!--
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!-- JJWT for JWT Token Generation -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
 			<version>0.9.1</version>
 		</dependency>
 
-		<!-- BCrypt for Password Encryption -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-crypto</artifactId>
-		</dependency>
+		</dependency> -->
 	</dependencies>
 
 	<build>
@@ -776,61 +771,6 @@ public class ModelMapperConfig {
 }
 </file>
 
-<file path="src/main/java/tn/gti/E_Transfert/config/SecurityConfig.java">
-package tn.gti.E_Transfert.config;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import tn.gti.E_Transfert.util.JwtAuthenticationFilter;
-
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers("/api/auth/users/**").hasAuthority("ADMINISTRATOR")
-                        .requestMatchers("/api/transfer-requests/**").hasAnyAuthority("CLIENT", "ADMINISTRATOR")
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
-
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-}
-</file>
-
 <file path="src/main/java/tn/gti/E_Transfert/controller/AuthController.java">
 package tn.gti.E_Transfert.controller;
 
@@ -854,39 +794,7 @@ public class AuthController {
 
     private final UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
-        UserResponseDTO user = userService.registerUser(registerDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(user);
-    }
 
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody UserLoginDTO loginDTO) {
-        String token = userService.authenticateUser(loginDTO);
-        return ResponseEntity.ok(token);
-    }
-
-    @GetMapping("/users")
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        List<UserResponseDTO> users = userService.getAllUsers();
-        return users.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(users);
-    }
-
-    @GetMapping("/users/{id}")
-    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
-    }
-
-    @PutMapping("/users/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO updateDTO) {
-        return ResponseEntity.ok(userService.updateUser(id, updateDTO));
-    }
-
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
-    }
 }
 </file>
 
@@ -2216,7 +2124,6 @@ package tn.gti.E_Transfert.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.gti.E_Transfert.dto.request.UserLoginDTO;
@@ -2227,7 +2134,6 @@ import tn.gti.E_Transfert.entity.User;
 import tn.gti.E_Transfert.enums.UserRole;
 import tn.gti.E_Transfert.exception.TransferException;
 import tn.gti.E_Transfert.repository.UserRepository;
-import tn.gti.E_Transfert.util.JwtUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -2240,9 +2146,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
 
+
+    /*
     public UserResponseDTO registerUser(UserRegisterDTO registerDTO) {
         log.info("Registering user with email: {}", registerDTO.getEmail());
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
@@ -2297,12 +2203,11 @@ public class UserService {
             throw new TransferException("Failed to generate authentication token", e);
         }
     }
+    */
+
 
     public List<UserResponseDTO> getAllUsers() {
-        log.info("Retrieving all users");
-        return userRepository.findAll().stream()
-                .map(user -> modelMapper.map(user, UserResponseDTO.class))
-                .collect(Collectors.toList());
+        return null;
     }
 
     public UserResponseDTO getUserById(Long id) {
@@ -2313,141 +2218,12 @@ public class UserService {
     }
 
     public UserResponseDTO updateUser(Long id, UserUpdateDTO updateDTO) {
-        log.info("Updating user with ID: {}", id);
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new TransferException("User not found with ID: " + id));
-        if (updateDTO.getEmail() != null && !user.getEmail().equals(updateDTO.getEmail()) &&
-                userRepository.existsByEmail(updateDTO.getEmail())) {
-            throw new TransferException("Email already exists: " + updateDTO.getEmail());
-        }
-        modelMapper.map(updateDTO, user);
-        if (updateDTO.getPassword() != null && !updateDTO.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(updateDTO.getPassword()));
-        }
-        User updated = userRepository.save(user);
-        return modelMapper.map(updated, UserResponseDTO.class);
+        return null;
+
     }
 
     public void deleteUser(Long id) {
-        log.info("Deleting user with ID: {}", id);
-        if (!userRepository.existsById(id)) {
-            throw new TransferException("User not found with ID: " + id);
-        }
-        userRepository.deleteById(id);
-    }
-}
-</file>
 
-<file path="src/main/java/tn/gti/E_Transfert/util/JwtAuthenticationFilter.java">
-package tn.gti.E_Transfert.util;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.Collections;
-
-@Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
-    private final JwtUtil jwtUtil;
-
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
-
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            if (jwtUtil.validateToken(token)) {
-                String email = jwtUtil.getEmailFromToken(token);
-                Long userId = jwtUtil.getUserIdFromToken(token);
-                String role = jwtUtil.getRoleFromToken(token).name();
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        email, null, Collections.singletonList(new SimpleGrantedAuthority(role))); // Remove "ROLE_" prefix
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
-        }
-        filterChain.doFilter(request, response);
-    }
-}
-</file>
-
-<file path="src/main/java/tn/gti/E_Transfert/util/JwtUtil.java">
-package tn.gti.E_Transfert.util;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import tn.gti.E_Transfert.enums.UserRole;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-@Component
-public class JwtUtil {
-
-    @Value("${jwt.secret}")
-    private String secret;
-
-    @Value("${jwt.expiration}")
-    private Long expiration;
-
-    public String generateToken(String email, Long userId, UserRole role) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("role", role.name());
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
-                .signWith(SignatureAlgorithm.HS512, secret)
-                .compact();
-    }
-
-    public Claims getClaimsFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody();
-    }
-
-    public String getEmailFromToken(String token) {
-        return getClaimsFromToken(token).getSubject();
-    }
-
-    public Long getUserIdFromToken(String token) {
-        return ((Number) getClaimsFromToken(token).get("userId")).longValue();
-    }
-
-    public UserRole getRoleFromToken(String token) {
-        String role = (String) getClaimsFromToken(token).get("role");
-        return UserRole.valueOf(role);
-    }
-
-    public boolean validateToken(String token) {
-        try {
-            Claims claims = getClaimsFromToken(token);
-            return !claims.getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
-        }
     }
 }
 </file>
@@ -2470,8 +2246,8 @@ file.upload-dir=uploads/
 logging.level.tn.gti.E_Transfert=DEBUG
 logging.level.org.springframework=DEBUG
 
-jwt.secret=8y3k2p9m4v7n6x5z1q8r3t0u2w4j6f8h0l5g7a9b2c4d6e8i1k3m5o7p9s2u4v6w8x0y2z4
-jwt.expiration=86400
+# jwt.secret=8y3k2p9m4v7n6x5z1q8r3t0u2w4j6f8h0l5g7a9b2c4d6e8i1k3m5o7p9s2u4v6w8x0y2z4
+# jwt.expiration=86400
 </file>
 
 <file path="src/test/java/tn/gti/E_Transfert/ETransfertApplicationTests.java">

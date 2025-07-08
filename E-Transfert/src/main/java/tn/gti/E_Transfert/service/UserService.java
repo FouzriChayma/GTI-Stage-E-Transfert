@@ -3,7 +3,6 @@ package tn.gti.E_Transfert.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.gti.E_Transfert.dto.request.UserLoginDTO;
@@ -14,7 +13,6 @@ import tn.gti.E_Transfert.entity.User;
 import tn.gti.E_Transfert.enums.UserRole;
 import tn.gti.E_Transfert.exception.TransferException;
 import tn.gti.E_Transfert.repository.UserRepository;
-import tn.gti.E_Transfert.util.JwtUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,16 +25,14 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
 
     public UserResponseDTO registerUser(UserRegisterDTO registerDTO) {
         log.info("Registering user with email: {}", registerDTO.getEmail());
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
+            log.warn("Email already exists: {}", registerDTO.getEmail());
             throw new TransferException("Email already exists: " + registerDTO.getEmail());
         }
         User user = modelMapper.map(registerDTO, User.class);
-        user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
         user.setRole(UserRole.CLIENT); // Default role
         user.setActive(true);
         User saved = userRepository.save(user);
@@ -44,7 +40,7 @@ public class UserService {
         return modelMapper.map(saved, UserResponseDTO.class);
     }
 
-    public String authenticateUser(UserLoginDTO loginDTO) {
+    public UserResponseDTO authenticateUser(UserLoginDTO loginDTO) {
         log.info("Authenticating user with email: {}", loginDTO.getEmail());
         if (loginDTO.getEmail() == null || loginDTO.getEmail().isEmpty()) {
             log.error("Login attempt with empty email");
@@ -55,41 +51,37 @@ public class UserService {
             throw new TransferException("Password is required");
         }
 
-        // Find user by email (case-insensitive for flexibility)
         User user = userRepository.findByEmail(loginDTO.getEmail().toLowerCase())
                 .orElseThrow(() -> {
                     log.warn("No user found with email: {}", loginDTO.getEmail());
                     return new TransferException("Invalid email or password");
                 });
 
-        // Verify password
-        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
+        // Simple password comparison (no encoding for now)
+        if (!user.getPassword().equals(loginDTO.getPassword())) {
             log.warn("Password mismatch for user: {}", loginDTO.getEmail());
             throw new TransferException("Invalid email or password");
         }
 
-        // Check if account is active
         if (!user.isActive()) {
             log.warn("Login attempt for disabled account: {}", loginDTO.getEmail());
             throw new TransferException("User account is disabled");
         }
 
-        // Generate JWT token
-        try {
-            String token = jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole());
-            log.info("Generated JWT token for user: {}", user.getEmail());
-            return token;
-        } catch (Exception e) {
-            log.error("Failed to generate JWT token for user: {}", user.getEmail(), e);
-            throw new TransferException("Failed to generate authentication token", e);
-        }
+        log.info("User authenticated successfully: {}", user.getEmail());
+        return modelMapper.map(user, UserResponseDTO.class);
     }
 
     public List<UserResponseDTO> getAllUsers() {
         log.info("Retrieving all users");
-        return userRepository.findAll().stream()
-                .map(user -> modelMapper.map(user, UserResponseDTO.class))
-                .collect(Collectors.toList());
+        try {
+            return userRepository.findAll().stream()
+                    .map(user -> modelMapper.map(user, UserResponseDTO.class))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to retrieve all users: {}", e.getMessage(), e);
+            throw new TransferException("Failed to retrieve all users", e);
+        }
     }
 
     public UserResponseDTO getUserById(Long id) {
@@ -101,25 +93,41 @@ public class UserService {
 
     public UserResponseDTO updateUser(Long id, UserUpdateDTO updateDTO) {
         log.info("Updating user with ID: {}", id);
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new TransferException("User not found with ID: " + id));
-        if (updateDTO.getEmail() != null && !user.getEmail().equals(updateDTO.getEmail()) &&
-                userRepository.existsByEmail(updateDTO.getEmail())) {
-            throw new TransferException("Email already exists: " + updateDTO.getEmail());
+        try {
+            User existing = userRepository.findById(id)
+                    .orElseThrow(() -> new TransferException("User not found with ID: " + id));
+
+            // Update only non-null fields from DTO
+            modelMapper.map(updateDTO, existing);
+
+            // Ensure email uniqueness if email is being updated
+            if (updateDTO.getEmail() != null && !updateDTO.getEmail().equals(existing.getEmail())) {
+                if (userRepository.existsByEmail(updateDTO.getEmail())) {
+                    log.warn("Email already exists: {}", updateDTO.getEmail());
+                    throw new TransferException("Email already exists: " + updateDTO.getEmail());
+                }
+            }
+
+            User updated = userRepository.save(existing);
+            log.debug("Updated user: {}", updated.getId());
+            return modelMapper.map(updated, UserResponseDTO.class);
+        } catch (Exception e) {
+            log.error("Failed to update user with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to update user with ID: " + id, e);
         }
-        modelMapper.map(updateDTO, user);
-        if (updateDTO.getPassword() != null && !updateDTO.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(updateDTO.getPassword()));
-        }
-        User updated = userRepository.save(user);
-        return modelMapper.map(updated, UserResponseDTO.class);
     }
 
     public void deleteUser(Long id) {
         log.info("Deleting user with ID: {}", id);
-        if (!userRepository.existsById(id)) {
-            throw new TransferException("User not found with ID: " + id);
+        try {
+            if (!userRepository.existsById(id)) {
+                throw new TransferException("User not found with ID: " + id);
+            }
+            userRepository.deleteById(id);
+            log.debug("Deleted user with ID: {}", id);
+        } catch (Exception e) {
+            log.error("Failed to delete user with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to delete user with ID: " + id, e);
         }
-        userRepository.deleteById(id);
     }
 }

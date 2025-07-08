@@ -95,24 +95,22 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Spring Security -->
+		<!--
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!-- JJWT for JWT Token Generation -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
 			<version>0.9.1</version>
 		</dependency>
 
-		<!-- BCrypt for Password Encryption -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-crypto</artifactId>
-		</dependency>
+		</dependency> -->
 	</dependencies>
 
 	<build>
