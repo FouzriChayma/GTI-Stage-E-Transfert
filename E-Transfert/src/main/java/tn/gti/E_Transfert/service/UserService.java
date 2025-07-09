@@ -9,11 +9,18 @@ import tn.gti.E_Transfert.dto.request.UserLoginDTO;
 import tn.gti.E_Transfert.dto.request.UserRegisterDTO;
 import tn.gti.E_Transfert.dto.request.UserUpdateDTO;
 import tn.gti.E_Transfert.dto.response.UserResponseDTO;
+import tn.gti.E_Transfert.entity.Document;
 import tn.gti.E_Transfert.entity.User;
 import tn.gti.E_Transfert.enums.UserRole;
 import tn.gti.E_Transfert.exception.TransferException;
+import tn.gti.E_Transfert.repository.DocumentRepository;
 import tn.gti.E_Transfert.repository.UserRepository;
 
+import java.io.IOException;
+import java.nio.file.Files;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +32,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final DocumentRepository documentRepository;
 
     public UserResponseDTO registerUser(UserRegisterDTO registerDTO) {
         log.info("Registering user with email: {}", registerDTO.getEmail());
@@ -128,6 +136,29 @@ public class UserService {
         } catch (Exception e) {
             log.error("Failed to delete user with ID {}: {}", id, e.getMessage(), e);
             throw new TransferException("Failed to delete user with ID: " + id, e);
+        }
+    }
+    // Add these imports at the top
+
+    // Add these methods to the TransferRequestService class
+    public Document getDocumentById(Long documentId) {
+        log.info("Retrieving document with ID: {}", documentId);
+        return documentRepository.findById(documentId)
+                .orElseThrow(() -> new TransferException("Document not found with ID: " + documentId));
+    }
+
+    public byte[] getDocumentContent(String filePath) {
+        log.info("Reading content of file: {}", filePath);
+        try {
+            Path path = Paths.get(filePath);
+            if (!Files.exists(path)) {
+                log.error("File does not exist: {}", filePath);
+                throw new TransferException("File not found: " + filePath);
+            }
+            return Files.readAllBytes(path);
+        } catch (IOException e) {
+            log.error("Failed to read file content: {}", filePath, e);
+            throw new TransferException("Failed to read file content: " + filePath, e);
         }
     }
 }

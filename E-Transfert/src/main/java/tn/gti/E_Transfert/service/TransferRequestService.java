@@ -337,4 +337,24 @@ public class TransferRequestService {
             throw new TransferException("Failed to delete document with ID: " + documentId, e);
         }
     }
+    public Document getDocumentById(Long documentId) {
+        log.info("Retrieving document with ID: {}", documentId);
+        return documentRepository.findById(documentId)
+                .orElseThrow(() -> new TransferException("Document not found with ID: " + documentId));
+    }
+
+    public byte[] getDocumentContent(String filePath) {
+        log.info("Reading content of file: {}", filePath);
+        try {
+            Path path = Paths.get(filePath);
+            if (!Files.exists(path)) {
+                log.error("File does not exist: {}", filePath);
+                throw new TransferException("File not found: " + filePath);
+            }
+            return Files.readAllBytes(path);
+        } catch (IOException e) {
+            log.error("Failed to read file content: {}", filePath, e);
+            throw new TransferException("Failed to read file content: " + filePath, e);
+        }
+    }
 }

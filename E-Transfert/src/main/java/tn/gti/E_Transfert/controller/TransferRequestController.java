@@ -2,13 +2,16 @@ package tn.gti.E_Transfert.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tn.gti.E_Transfert.dto.request.TransferRequestRequestDTO;
 import tn.gti.E_Transfert.dto.response.DocumentResponseDTO;
 import tn.gti.E_Transfert.dto.response.TransferRequestResponseDTO;
+import tn.gti.E_Transfert.entity.Document;
 import tn.gti.E_Transfert.enums.TransferStatus;
 import tn.gti.E_Transfert.enums.TransferType;
 import tn.gti.E_Transfert.service.TransferRequestService;
@@ -113,5 +116,16 @@ public class TransferRequestController {
         transferRequestService.deleteDocument(id, documentId);
         return ResponseEntity.noContent().build();
     }
-
+    @GetMapping("/{transferRequestId}/documents/{documentId}/download")
+    public ResponseEntity<byte[]> downloadDocument(@PathVariable Long transferRequestId, @PathVariable Long documentId) {
+        Document document = transferRequestService.getDocumentById(documentId);
+        if (document == null || !document.getTransferRequest().getIdTransferRequest().equals(transferRequestId)) {
+            return ResponseEntity.notFound().build();
+        }
+        byte[] content = transferRequestService.getDocumentContent(document.getFilePath());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(document.getFileType()));
+        headers.setContentDispositionFormData("attachment", document.getFileName());
+        return new ResponseEntity<>(content, headers, HttpStatus.OK);
+    }
 }
