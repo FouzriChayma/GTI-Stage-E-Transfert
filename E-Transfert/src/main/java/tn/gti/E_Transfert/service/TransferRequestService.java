@@ -139,7 +139,7 @@ public class TransferRequestService {
             TransferRequest existing = transferRequestRepository.findById(id)
                     .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
             log.debug("Existing TransferRequest: {}", existing);
-            if (existing.getStatus() != TransferStatus.PENDING) {
+            if (existing.getStatus() != TransferStatus.PENDING && existing.getStatus() != TransferStatus.INFO_REQUESTED) {
                 throw new TransferException("Cannot update transfer request with status: " + existing.getStatus());
             }
             modelMapper.map(requestDTO, existing);
