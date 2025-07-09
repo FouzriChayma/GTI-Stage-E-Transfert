@@ -75,6 +75,23 @@ public class TransferRequestService {
             throw new TransferException("Failed to search transfer requests", e);
         }
     }
+    public TransferRequestResponseDTO createTransferRequestWithoutDocument(TransferRequestRequestDTO requestDTO) {
+        log.info("Creating transfer request without document for user ID: {}", requestDTO.getUserId());
+        validateCreateDTO(requestDTO);
+        try {
+            TransferRequest transferRequest = modelMapper.map(requestDTO, TransferRequest.class);
+            Beneficiary beneficiary = transferRequest.getBeneficiary();
+            beneficiary = beneficiaryRepository.save(beneficiary);
+            transferRequest.setBeneficiary(beneficiary);
+            transferRequest.setStatus(TransferStatus.PENDING);
+            transferRequest.setCreatedAt(LocalDateTime.now());
+            TransferRequest saved = transferRequestRepository.save(transferRequest);
+            return modelMapper.map(saved, TransferRequestResponseDTO.class);
+        } catch (Exception e) {
+            log.error("Unexpected error creating transfer request: {}", e.getMessage(), e);
+            throw new TransferException("Unexpected error creating transfer request", e);
+        }
+    }
 
     public TransferRequestResponseDTO createTransferRequestWithDocument(TransferRequestRequestDTO requestDTO, MultipartFile documentFile) {
         log.info("Creating transfer request with document for user ID: {}", requestDTO.getUserId());
@@ -94,35 +111,6 @@ public class TransferRequestService {
         } catch (IOException e) {
             log.error("Failed to create transfer request with document: {}", e.getMessage(), e);
             throw new TransferException("Failed to create transfer request with document", e);
-        } catch (Exception e) {
-            log.error("Unexpected error creating transfer request: {}", e.getMessage(), e);
-            throw new TransferException("Unexpected error creating transfer request", e);
-        }
-    }
-    public TransferRequestResponseDTO createTransferRequestWithDefaultDocument(TransferRequestRequestDTO requestDTO) {
-        log.info("Creating transfer request with default document for user ID: {}", requestDTO.getUserId());
-        validateCreateDTO(requestDTO);
-        try {
-            log.info("Mapping DTO to TransferRequest: {}", requestDTO);
-            TransferRequest transferRequest = modelMapper.map(requestDTO, TransferRequest.class);
-            log.info("Mapped TransferRequest: {}", transferRequest);
-            Beneficiary beneficiary = transferRequest.getBeneficiary();
-            log.info("Saving Beneficiary: {}", beneficiary);
-            beneficiary = beneficiaryRepository.save(beneficiary);
-            log.info("Saved Beneficiary: {}", beneficiary);
-            transferRequest.setBeneficiary(beneficiary);
-            transferRequest.setStatus(TransferStatus.PENDING);
-            transferRequest.setCreatedAt(LocalDateTime.now());
-            log.info("Saving TransferRequest: {}", transferRequest);
-            TransferRequest saved = transferRequestRepository.save(transferRequest);
-            log.info("Saved TransferRequest: {}", saved);
-            Document defaultDocument = createDefaultDocument(saved);
-            saved.getDocuments().add(defaultDocument);
-            saved = transferRequestRepository.save(saved);
-            return modelMapper.map(saved, TransferRequestResponseDTO.class);
-        } catch (IOException e) {
-            log.error("Failed to create transfer request with default document: {}", e.getMessage(), e);
-            throw new TransferException("Failed to create transfer request with default document", e);
         } catch (Exception e) {
             log.error("Unexpected error creating transfer request: {}", e.getMessage(), e);
             throw new TransferException("Unexpected error creating transfer request", e);

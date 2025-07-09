@@ -42,13 +42,19 @@ public class TransferRequestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+
     @PostMapping("/json")
     public ResponseEntity<TransferRequestResponseDTO> createTransferRequestJson(
             @Valid @RequestBody TransferRequestRequestDTO requestDTO) {
-        TransferRequestResponseDTO created = transferRequestService.createTransferRequestWithDefaultDocument(requestDTO);
+        TransferRequestResponseDTO created = transferRequestService.createTransferRequestWithoutDocument(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
-
+    @PostMapping("/no-document")
+    public ResponseEntity<TransferRequestResponseDTO> createTransferRequestNoDocument(
+            @Valid @RequestBody TransferRequestRequestDTO requestDTO) {
+        TransferRequestResponseDTO created = transferRequestService.createTransferRequestWithoutDocument(requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
     @PutMapping("/{id}")
     public ResponseEntity<TransferRequestResponseDTO> updateTransferRequest(
             @PathVariable Long id, @Valid @RequestBody TransferRequestRequestDTO requestDTO) {
@@ -107,4 +113,5 @@ public class TransferRequestController {
         transferRequestService.deleteDocument(id, documentId);
         return ResponseEntity.noContent().build();
     }
+
 }
