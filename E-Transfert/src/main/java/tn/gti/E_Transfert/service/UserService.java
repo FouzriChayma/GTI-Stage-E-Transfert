@@ -3,23 +3,26 @@ package tn.gti.E_Transfert.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import tn.gti.E_Transfert.dto.request.UserLoginDTO;
 import tn.gti.E_Transfert.dto.request.UserRequestDTO;
 import tn.gti.E_Transfert.dto.response.UserResponseDTO;
-import tn.gti.E_Transfert.entity.Document;
 import tn.gti.E_Transfert.entity.User;
 import tn.gti.E_Transfert.enums.UserRole;
 import tn.gti.E_Transfert.exception.TransferException;
-import tn.gti.E_Transfert.repository.DocumentRepository;
 import tn.gti.E_Transfert.repository.UserRepository;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +33,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final DocumentRepository documentRepository;
+
+    @Value("${file.upload-dir}")
+    private String uploadDir;
 
     public UserResponseDTO registerUser(UserRequestDTO requestDTO) {
         log.info("Registering user with email: {}", requestDTO.getEmail());
@@ -38,10 +43,7 @@ public class UserService {
             log.warn("Email already exists: {}", requestDTO.getEmail());
             throw new TransferException("Email already exists: " + requestDTO.getEmail());
         }
-        // Optional: Add logic to check if the requester has permission to set ADMIN role
         if (requestDTO.getRole() == UserRole.ADMINISTRATOR) {
-            // Add authentication check (e.g., check if current user is ADMIN)
-            // For now, we'll allow it, but you can integrate Spring Security later
             log.info("Creating user with ADMINISTRATOR role");
         }
         User user = modelMapper.map(requestDTO, User.class);
@@ -68,7 +70,6 @@ public class UserService {
                     return new TransferException("Invalid email or password");
                 });
 
-        // Simple password comparison (no encoding for now)
         if (!user.getPassword().equals(loginDTO.getPassword())) {
             log.warn("Password mismatch for user: {}", loginDTO.getEmail());
             throw new TransferException("Invalid email or password");
@@ -108,10 +109,6 @@ public class UserService {
             User existing = userRepository.findById(id)
                     .orElseThrow(() -> new TransferException("User not found with ID: " + id));
 
-            // Update only non-null fields from DTO
-            modelMapper.map(requestDTO, existing);
-
-            // Ensure email uniqueness if email is being updated
             if (requestDTO.getEmail() != null && !requestDTO.getEmail().equals(existing.getEmail())) {
                 if (userRepository.existsByEmail(requestDTO.getEmail())) {
                     log.warn("Email already exists: {}", requestDTO.getEmail());
@@ -119,13 +116,13 @@ public class UserService {
                 }
             }
 
-            // Update role if provided
+            modelMapper.map(requestDTO, existing);
+
             if (requestDTO.getRole() != null) {
                 existing.setRole(requestDTO.getRole());
                 log.debug("Updated role to: {}", requestDTO.getRole());
             }
 
-            // Update password only if provided (for security, consider hashing)
             if (requestDTO.getPassword() != null && !requestDTO.getPassword().isEmpty()) {
                 existing.setPassword(requestDTO.getPassword());
                 log.debug("Updated password for user ID: {}", id);
@@ -143,8 +140,15 @@ public class UserService {
     public void deleteUser(Long id) {
         log.info("Deleting user with ID: {}", id);
         try {
-            if (!userRepository.existsById(id)) {
-                throw new TransferException("User not found with ID: " + id);
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new TransferException("User not found with ID: " + id));
+            if (user.getProfilePhotoPath() != null) {
+                try {
+                    Files.deleteIfExists(Paths.get(user.getProfilePhotoPath()));
+                    log.info("Deleted profile photo from filesystem: {}", user.getProfilePhotoPath());
+                } catch (IOException e) {
+                    log.warn("Failed to delete profile photo from filesystem: {}", user.getProfilePhotoPath(), e);
+                }
             }
             userRepository.deleteById(id);
             log.debug("Deleted user with ID: {}", id);
@@ -154,24 +158,87 @@ public class UserService {
         }
     }
 
-    public Document getDocumentById(Long documentId) {
-        log.info("Retrieving document with ID: {}", documentId);
-        return documentRepository.findById(documentId)
-                .orElseThrow(() -> new TransferException("Document not found with ID: " + documentId));
+    @Transactional
+    public UserResponseDTO uploadProfilePhoto(Long id, MultipartFile file) {
+        log.info("Uploading profile photo for user with ID: {}", id);
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new TransferException("User not found with ID: " + id));
+
+            List<String> allowedTypes = List.of("image/png", "image/jpeg");
+            if (file == null || file.isEmpty()) {
+                log.error("File is null or empty");
+                throw new TransferException("Uploaded file is empty or not provided");
+            }
+            if (!allowedTypes.contains(file.getContentType())) {
+                log.error("Invalid file type: {}. Allowed types are: {}", file.getContentType(), allowedTypes);
+                throw new TransferException("Invalid file type. Only PNG and JPEG are allowed");
+            }
+
+            Path uploadPath = Paths.get(uploadDir);
+            String fileName = "user_" + id + "_" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Delete old photo if exists
+            if (user.getProfilePhotoPath() != null) {
+                try {
+                    Files.deleteIfExists(Paths.get(user.getProfilePhotoPath()));
+                    log.info("Deleted old profile photo: {}", user.getProfilePhotoPath());
+                } catch (IOException e) {
+                    log.warn("Failed to delete old profile photo: {}", user.getProfilePhotoPath(), e);
+                }
+            }
+
+            user.setProfilePhotoPath(filePath.toString());
+            User updated = userRepository.save(user);
+            return modelMapper.map(updated, UserResponseDTO.class);
+        } catch (IOException e) {
+            log.error("Failed to upload profile photo for user with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to upload profile photo", e);
+        }
     }
 
-    public byte[] getDocumentContent(String filePath) {
-        log.info("Reading content of file: {}", filePath);
+    public byte[] getProfilePhotoContent(Long id) {
+        log.info("Retrieving profile photo for user with ID: {}", id);
         try {
-            Path path = Paths.get(filePath);
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new TransferException("User not found with ID: " + id));
+            if (user.getProfilePhotoPath() == null) {
+                throw new TransferException("No profile photo found for user with ID: " + id);
+            }
+            Path path = Paths.get(user.getProfilePhotoPath());
             if (!Files.exists(path)) {
-                log.error("File does not exist: {}", filePath);
-                throw new TransferException("File not found: " + filePath);
+                log.error("Profile photo file does not exist: {}", user.getProfilePhotoPath());
+                throw new TransferException("Profile photo file not found: " + user.getProfilePhotoPath());
             }
             return Files.readAllBytes(path);
         } catch (IOException e) {
-            log.error("Failed to read file content: {}", filePath, e);
-            throw new TransferException("Failed to read file content: " + filePath, e);
+            log.error("Failed to read profile photo for user with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to read profile photo content", e);
+        }
+    }
+
+    @Transactional
+    public void deleteProfilePhoto(Long id) {
+        log.info("Deleting profile photo for user with ID: {}", id);
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new TransferException("User not found with ID: " + id));
+            if (user.getProfilePhotoPath() == null) {
+                throw new TransferException("No profile photo found for user with ID: " + id);
+            }
+            try {
+                Files.deleteIfExists(Paths.get(user.getProfilePhotoPath()));
+                log.info("Deleted profile photo from filesystem: {}", user.getProfilePhotoPath());
+            } catch (IOException e) {
+                log.warn("Failed to delete profile photo from filesystem: {}", user.getProfilePhotoPath(), e);
+            }
+            user.setProfilePhotoPath(null);
+            userRepository.save(user);
+        } catch (Exception e) {
+            log.error("Failed to delete profile photo for user with ID {}: {}", id, e.getMessage(), e);
+            throw new TransferException("Failed to delete profile photo for user with ID: " + id, e);
         }
     }
 }

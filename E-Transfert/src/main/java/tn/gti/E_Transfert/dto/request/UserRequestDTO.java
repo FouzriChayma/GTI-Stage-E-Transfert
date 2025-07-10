@@ -32,7 +32,7 @@ public class UserRequestDTO {
     private String phoneNumber;
 
     @NotNull(message = "Role is required", groups = {Create.class})
-    private UserRole role; // Required for create, optional for update
+    private UserRole role;
 
     // Validation groups
     public interface Create {}

@@ -48,5 +48,7 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-
+    // New field for profile photo
+    @Column(name = "profile_photo_path")
+    private String profilePhotoPath;
 }

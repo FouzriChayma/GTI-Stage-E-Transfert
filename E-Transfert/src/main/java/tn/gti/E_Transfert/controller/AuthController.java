@@ -2,9 +2,12 @@ package tn.gti.E_Transfert.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tn.gti.E_Transfert.dto.request.UserLoginDTO;
 import tn.gti.E_Transfert.dto.request.UserRequestDTO;
 import tn.gti.E_Transfert.dto.response.UserResponseDTO;
@@ -23,6 +26,29 @@ public class AuthController {
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserRequestDTO registerDTO) {
         UserResponseDTO response = userService.registerUser(registerDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping(value = "/users/{id}/profile-photo", consumes = {"multipart/form-data"})
+    public ResponseEntity<UserResponseDTO> uploadProfilePhoto(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file) {
+        UserResponseDTO response = userService.uploadProfilePhoto(id, file);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/users/{id}/profile-photo")
+    public ResponseEntity<byte[]> getProfilePhoto(@PathVariable Long id) {
+        byte[] photoContent = userService.getProfilePhotoContent(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG); // Adjust based on file type if needed
+        headers.setContentDispositionFormData("attachment", "profile_photo.jpg");
+        return new ResponseEntity<>(photoContent, headers, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/users/{id}/profile-photo")
+    public ResponseEntity<Void> deleteProfilePhoto(@PathVariable Long id) {
+        userService.deleteProfilePhoto(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/login")
