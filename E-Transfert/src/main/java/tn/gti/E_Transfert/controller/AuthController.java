@@ -6,8 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.gti.E_Transfert.dto.request.UserLoginDTO;
-import tn.gti.E_Transfert.dto.request.UserRegisterDTO;
-import tn.gti.E_Transfert.dto.request.UserUpdateDTO;
+import tn.gti.E_Transfert.dto.request.UserRequestDTO;
 import tn.gti.E_Transfert.dto.response.UserResponseDTO;
 import tn.gti.E_Transfert.service.UserService;
 
@@ -21,7 +20,7 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
+    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserRequestDTO registerDTO) {
         UserResponseDTO response = userService.registerUser(registerDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -44,7 +43,7 @@ public class AuthController {
     }
 
     @PutMapping("/users/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO updateDTO) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequestDTO updateDTO) {
         return ResponseEntity.ok(userService.updateUser(id, updateDTO));
     }
 

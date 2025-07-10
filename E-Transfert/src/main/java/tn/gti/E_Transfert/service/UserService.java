@@ -6,8 +6,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.gti.E_Transfert.dto.request.UserLoginDTO;
-import tn.gti.E_Transfert.dto.request.UserRegisterDTO;
-import tn.gti.E_Transfert.dto.request.UserUpdateDTO;
+import tn.gti.E_Transfert.dto.request.UserRequestDTO;
 import tn.gti.E_Transfert.dto.response.UserResponseDTO;
 import tn.gti.E_Transfert.entity.Document;
 import tn.gti.E_Transfert.entity.User;
@@ -18,7 +17,6 @@ import tn.gti.E_Transfert.repository.UserRepository;
 
 import java.io.IOException;
 import java.nio.file.Files;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -34,14 +32,19 @@ public class UserService {
     private final ModelMapper modelMapper;
     private final DocumentRepository documentRepository;
 
-    public UserResponseDTO registerUser(UserRegisterDTO registerDTO) {
-        log.info("Registering user with email: {}", registerDTO.getEmail());
-        if (userRepository.existsByEmail(registerDTO.getEmail())) {
-            log.warn("Email already exists: {}", registerDTO.getEmail());
-            throw new TransferException("Email already exists: " + registerDTO.getEmail());
+    public UserResponseDTO registerUser(UserRequestDTO requestDTO) {
+        log.info("Registering user with email: {}", requestDTO.getEmail());
+        if (userRepository.existsByEmail(requestDTO.getEmail())) {
+            log.warn("Email already exists: {}", requestDTO.getEmail());
+            throw new TransferException("Email already exists: " + requestDTO.getEmail());
         }
-        User user = modelMapper.map(registerDTO, User.class);
-        user.setRole(UserRole.CLIENT); // Default role
+        // Optional: Add logic to check if the requester has permission to set ADMIN role
+        if (requestDTO.getRole() == UserRole.ADMINISTRATOR) {
+            // Add authentication check (e.g., check if current user is ADMIN)
+            // For now, we'll allow it, but you can integrate Spring Security later
+            log.info("Creating user with ADMINISTRATOR role");
+        }
+        User user = modelMapper.map(requestDTO, User.class);
         user.setActive(true);
         User saved = userRepository.save(user);
         log.debug("Registered user: {}", saved.getId());
@@ -99,21 +102,33 @@ public class UserService {
         return modelMapper.map(user, UserResponseDTO.class);
     }
 
-    public UserResponseDTO updateUser(Long id, UserUpdateDTO updateDTO) {
+    public UserResponseDTO updateUser(Long id, UserRequestDTO requestDTO) {
         log.info("Updating user with ID: {}", id);
         try {
             User existing = userRepository.findById(id)
                     .orElseThrow(() -> new TransferException("User not found with ID: " + id));
 
             // Update only non-null fields from DTO
-            modelMapper.map(updateDTO, existing);
+            modelMapper.map(requestDTO, existing);
 
             // Ensure email uniqueness if email is being updated
-            if (updateDTO.getEmail() != null && !updateDTO.getEmail().equals(existing.getEmail())) {
-                if (userRepository.existsByEmail(updateDTO.getEmail())) {
-                    log.warn("Email already exists: {}", updateDTO.getEmail());
-                    throw new TransferException("Email already exists: " + updateDTO.getEmail());
+            if (requestDTO.getEmail() != null && !requestDTO.getEmail().equals(existing.getEmail())) {
+                if (userRepository.existsByEmail(requestDTO.getEmail())) {
+                    log.warn("Email already exists: {}", requestDTO.getEmail());
+                    throw new TransferException("Email already exists: " + requestDTO.getEmail());
                 }
+            }
+
+            // Update role if provided
+            if (requestDTO.getRole() != null) {
+                existing.setRole(requestDTO.getRole());
+                log.debug("Updated role to: {}", requestDTO.getRole());
+            }
+
+            // Update password only if provided (for security, consider hashing)
+            if (requestDTO.getPassword() != null && !requestDTO.getPassword().isEmpty()) {
+                existing.setPassword(requestDTO.getPassword());
+                log.debug("Updated password for user ID: {}", id);
             }
 
             User updated = userRepository.save(existing);
@@ -138,9 +153,7 @@ public class UserService {
             throw new TransferException("Failed to delete user with ID: " + id, e);
         }
     }
-    // Add these imports at the top
 
-    // Add these methods to the TransferRequestService class
     public Document getDocumentById(Long documentId) {
         log.info("Retrieving document with ID: {}", documentId);
         return documentRepository.findById(documentId)
