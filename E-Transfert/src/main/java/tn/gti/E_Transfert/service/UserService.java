@@ -14,6 +14,7 @@ import tn.gti.E_Transfert.entity.User;
 import tn.gti.E_Transfert.enums.UserRole;
 import tn.gti.E_Transfert.exception.TransferException;
 import tn.gti.E_Transfert.repository.UserRepository;
+import tn.gti.E_Transfert.repository.UserSpecification;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,6 +37,26 @@ public class UserService {
 
     @Value("${file.upload-dir}")
     private String uploadDir;
+
+    public List<UserResponseDTO> searchUsers(
+            String email,
+            String firstName,
+            String lastName,
+            String phoneNumber,
+            UserRole role,
+            Boolean isActive) {
+        log.info("Searching users with criteria: email={}, firstName={}, lastName={}, phoneNumber={}, role={}, isActive={}",
+                email, firstName, lastName, phoneNumber, role, isActive);
+        try {
+            return userRepository.findAll(UserSpecification.searchByCriteria(email, firstName, lastName, phoneNumber, role, isActive))
+                    .stream()
+                    .map(user -> modelMapper.map(user, UserResponseDTO.class))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to search users: {}", e.getMessage(), e);
+            throw new TransferException("Failed to search users", e);
+        }
+    }
 
     public UserResponseDTO registerUser(UserRequestDTO requestDTO) {
         log.info("Registering user with email: {}", requestDTO.getEmail());

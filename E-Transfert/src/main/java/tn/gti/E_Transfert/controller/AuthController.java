@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import tn.gti.E_Transfert.dto.request.UserLoginDTO;
 import tn.gti.E_Transfert.dto.request.UserRequestDTO;
 import tn.gti.E_Transfert.dto.response.UserResponseDTO;
+import tn.gti.E_Transfert.enums.UserRole;
 import tn.gti.E_Transfert.service.UserService;
 
 import java.util.List;
@@ -22,6 +23,17 @@ public class AuthController {
 
     private final UserService userService;
 
+    @GetMapping("/users/search")
+    public ResponseEntity<List<UserResponseDTO>> searchUsers(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) UserRole role,
+            @RequestParam(required = false) Boolean isActive) {
+        List<UserResponseDTO> users = userService.searchUsers(email, firstName, lastName, phoneNumber, role, isActive);
+        return users.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(users);
+    }
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserRequestDTO registerDTO) {
         UserResponseDTO response = userService.registerUser(registerDTO);
