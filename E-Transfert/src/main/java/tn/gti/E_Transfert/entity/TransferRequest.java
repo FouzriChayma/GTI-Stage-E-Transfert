@@ -28,9 +28,10 @@ public class TransferRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idTransferRequest;
 
-    @Column(name = "user_id", nullable = false)
-    @NotNull(message = "User ID is required")
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @NotNull(message = "User is required")
+    private User user;
 
     @Column(name = "commission_account_number", nullable = false)
     @NotBlank(message = "Commission account number is required")

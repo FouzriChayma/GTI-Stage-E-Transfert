@@ -69,6 +69,7 @@ public class TransferRequestRequestDTO {
     @NotNull(message = "Beneficiary ID is required", groups = {Update.class})
     Long beneficiaryId;
 
+
     // Validation groups
     public interface Create {}
     public interface Update {}

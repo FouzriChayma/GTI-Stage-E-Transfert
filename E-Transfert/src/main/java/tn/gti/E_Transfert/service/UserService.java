@@ -4,17 +4,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import tn.gti.E_Transfert.dto.request.UserLoginDTO;
 import tn.gti.E_Transfert.dto.request.UserRequestDTO;
 import tn.gti.E_Transfert.dto.response.UserResponseDTO;
+import tn.gti.E_Transfert.entity.RefreshToken;
 import tn.gti.E_Transfert.entity.User;
 import tn.gti.E_Transfert.enums.UserRole;
 import tn.gti.E_Transfert.exception.TransferException;
+import tn.gti.E_Transfert.repository.RefreshTokenRepository;
 import tn.gti.E_Transfert.repository.UserRepository;
 import tn.gti.E_Transfert.repository.UserSpecification;
+import tn.gti.E_Transfert.security.JwtUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,9 +38,15 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
+
+    @Value("${jwt.refresh-token.expiration}")
+    private Long refreshTokenExpiration;
 
     public List<UserResponseDTO> searchUsers(
             String email,
@@ -58,51 +68,90 @@ public class UserService {
         }
     }
 
+    @Transactional
     public UserResponseDTO registerUser(UserRequestDTO requestDTO) {
         log.info("Registering user with email: {}", requestDTO.getEmail());
         if (userRepository.existsByEmail(requestDTO.getEmail())) {
             log.warn("Email already exists: {}", requestDTO.getEmail());
             throw new TransferException("Email already exists: " + requestDTO.getEmail());
         }
-        if (requestDTO.getRole() == UserRole.ADMINISTRATOR) {
-            log.info("Creating user with ADMINISTRATOR role");
-        }
         User user = modelMapper.map(requestDTO, User.class);
+        user.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         user.setActive(true);
         User saved = userRepository.save(user);
-        log.debug("Registered user: {}", saved.getId());
-        return modelMapper.map(saved, UserResponseDTO.class);
+
+        // Generate tokens
+        String accessToken = jwtUtil.generateAccessToken(saved.getEmail(), saved.getRole().toString(), saved.getId());
+        String refreshToken = jwtUtil.generateRefreshToken(saved.getEmail(), saved.getId());
+
+        // Save refresh token
+        RefreshToken tokenEntity = new RefreshToken();
+        tokenEntity.setToken(refreshToken);
+        tokenEntity.setUserId(saved.getId());
+        tokenEntity.setExpiryDate(LocalDateTime.now().plusSeconds(refreshTokenExpiration));
+        refreshTokenRepository.save(tokenEntity);
+
+        UserResponseDTO response = modelMapper.map(saved, UserResponseDTO.class);
+        response.setToken(accessToken);
+        response.setRefreshToken(refreshToken);
+        return response;
     }
 
+    @Transactional
     public UserResponseDTO authenticateUser(UserLoginDTO loginDTO) {
         log.info("Authenticating user with email: {}", loginDTO.getEmail());
         if (loginDTO.getEmail() == null || loginDTO.getEmail().isEmpty()) {
-            log.error("Login attempt with empty email");
             throw new TransferException("Email is required");
         }
         if (loginDTO.getPassword() == null || loginDTO.getPassword().isEmpty()) {
-            log.error("Login attempt with empty password");
             throw new TransferException("Password is required");
         }
 
         User user = userRepository.findByEmail(loginDTO.getEmail().toLowerCase())
-                .orElseThrow(() -> {
-                    log.warn("No user found with email: {}", loginDTO.getEmail());
-                    return new TransferException("Invalid email or password");
-                });
+                .orElseThrow(() -> new TransferException("Invalid email or password"));
 
-        if (!user.getPassword().equals(loginDTO.getPassword())) {
-            log.warn("Password mismatch for user: {}", loginDTO.getEmail());
+        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             throw new TransferException("Invalid email or password");
         }
 
         if (!user.isActive()) {
-            log.warn("Login attempt for disabled account: {}", loginDTO.getEmail());
             throw new TransferException("User account is disabled");
         }
 
-        log.info("User authenticated successfully: {}", user.getEmail());
-        return modelMapper.map(user, UserResponseDTO.class);
+        String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().toString(), user.getId());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getEmail(), user.getId());
+
+        // Save refresh token
+        RefreshToken tokenEntity = new RefreshToken();
+        tokenEntity.setToken(refreshToken);
+        tokenEntity.setUserId(user.getId());
+        tokenEntity.setExpiryDate(LocalDateTime.now().plusSeconds(refreshTokenExpiration));
+        refreshTokenRepository.save(tokenEntity);
+
+        UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
+        response.setToken(accessToken);
+        response.setRefreshToken(refreshToken);
+        return response;
+    }
+
+    @Transactional
+    public UserResponseDTO refreshAccessToken(String refreshToken) {
+        log.info("Refreshing access token");
+        RefreshToken tokenEntity = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new TransferException("Invalid refresh token"));
+
+        if (tokenEntity.isRevoked() || tokenEntity.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new TransferException("Refresh token is revoked or expired");
+        }
+
+        User user = userRepository.findById(tokenEntity.getUserId())
+                .orElseThrow(() -> new TransferException("User not found"));
+
+        String newAccessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().toString(), user.getId());
+        UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
+        response.setToken(newAccessToken);
+        response.setRefreshToken(refreshToken);
+        return response;
     }
 
     public List<UserResponseDTO> getAllUsers() {
@@ -145,7 +194,7 @@ public class UserService {
             }
 
             if (requestDTO.getPassword() != null && !requestDTO.getPassword().isEmpty()) {
-                existing.setPassword(requestDTO.getPassword());
+                existing.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
                 log.debug("Updated password for user ID: {}", id);
             }
 

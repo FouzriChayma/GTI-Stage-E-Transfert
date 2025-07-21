@@ -10,18 +10,17 @@ import org.springframework.web.multipart.MultipartFile;
 import tn.gti.E_Transfert.dto.request.TransferRequestRequestDTO;
 import tn.gti.E_Transfert.dto.response.DocumentResponseDTO;
 import tn.gti.E_Transfert.dto.response.TransferRequestResponseDTO;
+import tn.gti.E_Transfert.dto.response.UserResponseDTO;
 import tn.gti.E_Transfert.entity.Beneficiary;
 import tn.gti.E_Transfert.entity.Document;
 import tn.gti.E_Transfert.entity.TransferRequest;
+import tn.gti.E_Transfert.entity.User;
 import tn.gti.E_Transfert.enums.TransferStatus;
 import tn.gti.E_Transfert.enums.TransferType;
 import tn.gti.E_Transfert.exception.TransferException;
-import tn.gti.E_Transfert.repository.BeneficiaryRepository;
-import tn.gti.E_Transfert.repository.DocumentRepository;
-import tn.gti.E_Transfert.repository.TransferRequestRepository;
+import tn.gti.E_Transfert.repository.*;
 
 import jakarta.annotation.PostConstruct;
-import tn.gti.E_Transfert.repository.TransferRequestSpecification;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -44,7 +43,7 @@ public class TransferRequestService {
     private final BeneficiaryRepository beneficiaryRepository;
     private final DocumentRepository documentRepository;
     private final ModelMapper modelMapper;
-
+    private final UserRepository userRepository;
     @Value("${file.upload-dir}")
     private String uploadDir;
 
@@ -61,14 +60,28 @@ public class TransferRequestService {
             throw new TransferException("Failed to initialize upload directory", e);
         }
     }
-    public List<TransferRequestResponseDTO> searchTransferRequests(Long userId, String commissionAccountNumber,
-                                                                   TransferType transferType, TransferStatus status, BigDecimal amount) {
-        log.info("Searching transfer requests with criteria: userId={}, commissionAccountNumber={}, transferType={}, status={}, amount={}",
-                userId, commissionAccountNumber, transferType, status, amount);
+
+
+
+    public List<TransferRequestResponseDTO> searchTransferRequests(
+            Long userId,
+            String commissionAccountNumber,
+            TransferType transferType,
+            TransferStatus status,
+            BigDecimal amount,
+            String firstName,
+            String lastName) {
+        log.info("Searching transfer requests with criteria: userId={}, commissionAccountNumber={}, transferType={}, status={}, amount={}, firstName={}, lastName={}",
+                userId, commissionAccountNumber, transferType, status, amount, firstName, lastName);
         try {
-            return transferRequestRepository.findAll(TransferRequestSpecification.searchByCriteria(userId, commissionAccountNumber, transferType, status, amount))
+            return transferRequestRepository.findAll(
+                            TransferRequestSpecification.searchByCriteria(userId, commissionAccountNumber, transferType, status, amount, firstName, lastName))
                     .stream()
-                    .map(transferRequest -> modelMapper.map(transferRequest, TransferRequestResponseDTO.class))
+                    .map(transferRequest -> {
+                        TransferRequestResponseDTO dto = modelMapper.map(transferRequest, TransferRequestResponseDTO.class);
+                        dto.setUser(modelMapper.map(transferRequest.getUser(), UserResponseDTO.class));
+                        return dto;
+                    })
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Failed to search transfer requests: {}", e.getMessage(), e);
@@ -79,14 +92,19 @@ public class TransferRequestService {
         log.info("Creating transfer request without document for user ID: {}", requestDTO.getUserId());
         validateCreateDTO(requestDTO);
         try {
+            User user = userRepository.findById(requestDTO.getUserId())
+                    .orElseThrow(() -> new TransferException("User not found with ID: " + requestDTO.getUserId()));
             TransferRequest transferRequest = modelMapper.map(requestDTO, TransferRequest.class);
+            transferRequest.setUser(user);
             Beneficiary beneficiary = transferRequest.getBeneficiary();
             beneficiary = beneficiaryRepository.save(beneficiary);
             transferRequest.setBeneficiary(beneficiary);
             transferRequest.setStatus(TransferStatus.PENDING);
             transferRequest.setCreatedAt(LocalDateTime.now());
             TransferRequest saved = transferRequestRepository.save(transferRequest);
-            return modelMapper.map(saved, TransferRequestResponseDTO.class);
+            TransferRequestResponseDTO dto = modelMapper.map(saved, TransferRequestResponseDTO.class);
+            dto.setUser(modelMapper.map(saved.getUser(), UserResponseDTO.class));
+            return dto;
         } catch (Exception e) {
             log.error("Unexpected error creating transfer request: {}", e.getMessage(), e);
             throw new TransferException("Unexpected error creating transfer request", e);
@@ -97,7 +115,10 @@ public class TransferRequestService {
         log.info("Creating transfer request with document for user ID: {}", requestDTO.getUserId());
         validateCreateDTO(requestDTO);
         try {
+            User user = userRepository.findById(requestDTO.getUserId())
+                    .orElseThrow(() -> new TransferException("User not found with ID: " + requestDTO.getUserId()));
             TransferRequest transferRequest = modelMapper.map(requestDTO, TransferRequest.class);
+            transferRequest.setUser(user);
             Beneficiary beneficiary = transferRequest.getBeneficiary();
             beneficiary = beneficiaryRepository.save(beneficiary);
             transferRequest.setBeneficiary(beneficiary);
@@ -107,7 +128,9 @@ public class TransferRequestService {
             Document document = createDocumentFromFile(documentFile, saved);
             saved.getDocuments().add(document);
             saved = transferRequestRepository.save(saved);
-            return modelMapper.map(saved, TransferRequestResponseDTO.class);
+            TransferRequestResponseDTO dto = modelMapper.map(saved, TransferRequestResponseDTO.class);
+            dto.setUser(modelMapper.map(saved.getUser(), UserResponseDTO.class));
+            return dto;
         } catch (IOException e) {
             log.error("Failed to create transfer request with document: {}", e.getMessage(), e);
             throw new TransferException("Failed to create transfer request with document", e);
@@ -137,12 +160,15 @@ public class TransferRequestService {
             existing.setBeneficiary(beneficiary);
             TransferRequest saved = transferRequestRepository.save(existing);
             log.debug("Saved TransferRequest: {}", saved);
-            return modelMapper.map(saved, TransferRequestResponseDTO.class);
+            TransferRequestResponseDTO dto = modelMapper.map(saved, TransferRequestResponseDTO.class);
+            dto.setUser(modelMapper.map(saved.getUser(), UserResponseDTO.class));
+            return dto;
         } catch (Exception e) {
             log.error("Failed to update transfer request with ID {}: {}", id, e.getMessage(), e);
             throw new TransferException("Failed to update transfer request with ID: " + id, e);
         }
     }
+
     private void validateCreateDTO(TransferRequestRequestDTO requestDTO) {
         if (requestDTO.getBeneficiary() == null) {
             throw new TransferException("Beneficiary is required");
@@ -198,7 +224,11 @@ public class TransferRequestService {
         log.info("Retrieving all transfer requests");
         try {
             return transferRequestRepository.findAllWithDetails().stream()
-                    .map(transferRequest -> modelMapper.map(transferRequest, TransferRequestResponseDTO.class))
+                    .map(transferRequest -> {
+                        TransferRequestResponseDTO dto = modelMapper.map(transferRequest, TransferRequestResponseDTO.class);
+                        dto.setUser(modelMapper.map(transferRequest.getUser(), UserResponseDTO.class));
+                        return dto;
+                    })
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Failed to retrieve all transfer requests: {}", e.getMessage(), e);
@@ -211,7 +241,9 @@ public class TransferRequestService {
         try {
             TransferRequest transferRequest = transferRequestRepository.findById(id)
                     .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
-            return modelMapper.map(transferRequest, TransferRequestResponseDTO.class);
+            TransferRequestResponseDTO dto = modelMapper.map(transferRequest, TransferRequestResponseDTO.class);
+            dto.setUser(modelMapper.map(transferRequest.getUser(), UserResponseDTO.class));
+            return dto;
         } catch (Exception e) {
             log.error("Failed to retrieve transfer request with ID {}: {}", id, e.getMessage(), e);
             throw new TransferException("Failed to retrieve transfer request with ID: " + id, e);
@@ -240,7 +272,9 @@ public class TransferRequestService {
                         transfer.setValidatorId(validatorId);
                         transfer.setValidatedAt(LocalDateTime.now());
                         TransferRequest saved = transferRequestRepository.save(transfer);
-                        return modelMapper.map(saved, TransferRequestResponseDTO.class);
+                        TransferRequestResponseDTO dto = modelMapper.map(saved, TransferRequestResponseDTO.class);
+                        dto.setUser(modelMapper.map(saved.getUser(), UserResponseDTO.class));
+                        return dto;
                     })
                     .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
         } catch (Exception e) {
@@ -258,7 +292,9 @@ public class TransferRequestService {
                         transfer.setValidatorId(validatorId);
                         transfer.setValidatedAt(LocalDateTime.now());
                         TransferRequest saved = transferRequestRepository.save(transfer);
-                        return modelMapper.map(saved, TransferRequestResponseDTO.class);
+                        TransferRequestResponseDTO dto = modelMapper.map(saved, TransferRequestResponseDTO.class);
+                        dto.setUser(modelMapper.map(saved.getUser(), UserResponseDTO.class));
+                        return dto;
                     })
                     .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
         } catch (Exception e) {
@@ -275,7 +311,9 @@ public class TransferRequestService {
                         transfer.setStatus(TransferStatus.INFO_REQUESTED);
                         transfer.setValidatorId(validatorId);
                         TransferRequest saved = transferRequestRepository.save(transfer);
-                        return modelMapper.map(saved, TransferRequestResponseDTO.class);
+                        TransferRequestResponseDTO dto = modelMapper.map(saved, TransferRequestResponseDTO.class);
+                        dto.setUser(modelMapper.map(saved.getUser(), UserResponseDTO.class));
+                        return dto;
                     })
                     .orElseThrow(() -> new TransferException("Transfer request not found with ID: " + id));
         } catch (Exception e) {
@@ -337,6 +375,7 @@ public class TransferRequestService {
             throw new TransferException("Failed to delete document with ID: " + documentId, e);
         }
     }
+
     public Document getDocumentById(Long documentId) {
         log.info("Retrieving document with ID: {}", documentId);
         return documentRepository.findById(documentId)

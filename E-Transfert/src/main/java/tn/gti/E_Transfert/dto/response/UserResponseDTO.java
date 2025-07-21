@@ -19,5 +19,7 @@ public class UserResponseDTO {
     private boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String profilePhotoPath; // New field
+    private String profilePhotoPath;
+    private String token;
+    private String refreshToken; // Added field for refresh token
 }

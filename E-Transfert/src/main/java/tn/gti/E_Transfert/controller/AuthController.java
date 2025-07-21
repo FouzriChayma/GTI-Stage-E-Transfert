@@ -12,9 +12,11 @@ import tn.gti.E_Transfert.dto.request.UserLoginDTO;
 import tn.gti.E_Transfert.dto.request.UserRequestDTO;
 import tn.gti.E_Transfert.dto.response.UserResponseDTO;
 import tn.gti.E_Transfert.enums.UserRole;
+import tn.gti.E_Transfert.exception.TransferException;
 import tn.gti.E_Transfert.service.UserService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,6 +36,7 @@ public class AuthController {
         List<UserResponseDTO> users = userService.searchUsers(email, firstName, lastName, phoneNumber, role, isActive);
         return users.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(users);
     }
+
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserRequestDTO registerDTO) {
         UserResponseDTO response = userService.registerUser(registerDTO);
@@ -52,7 +55,7 @@ public class AuthController {
     public ResponseEntity<byte[]> getProfilePhoto(@PathVariable Long id) {
         byte[] photoContent = userService.getProfilePhotoContent(id);
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_JPEG); // Adjust based on file type if needed
+        headers.setContentType(MediaType.IMAGE_JPEG);
         headers.setContentDispositionFormData("attachment", "profile_photo.jpg");
         return new ResponseEntity<>(photoContent, headers, HttpStatus.OK);
     }
@@ -89,5 +92,13 @@ public class AuthController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/refresh-token")
+    public ResponseEntity<UserResponseDTO> refreshToken(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new TransferException("Refresh token is required");
+        }
+        return ResponseEntity.ok(userService.refreshAccessToken(refreshToken));
     }
 }

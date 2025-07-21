@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class TransferRequestResponseDTO {
     Long idTransferRequest;
-    Long userId;
+    UserResponseDTO user; // Replace userId with UserResponseDTO
     String commissionAccountNumber;
     AccountType commissionAccountType;
     String settlementAccountNumber;

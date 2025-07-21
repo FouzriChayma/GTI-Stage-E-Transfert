@@ -32,8 +32,11 @@ public class TransferRequestController {
             @RequestParam(required = false) String commissionAccountNumber,
             @RequestParam(required = false) TransferType transferType,
             @RequestParam(required = false) TransferStatus status,
-            @RequestParam(required = false) BigDecimal amount) {
-        List<TransferRequestResponseDTO> list = transferRequestService.searchTransferRequests(userId, commissionAccountNumber, transferType, status, amount);
+            @RequestParam(required = false) BigDecimal amount,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName) {
+        List<TransferRequestResponseDTO> list = transferRequestService.searchTransferRequests(
+                userId, commissionAccountNumber, transferType, status, amount, firstName, lastName);
         return list.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(list);
     }
 
