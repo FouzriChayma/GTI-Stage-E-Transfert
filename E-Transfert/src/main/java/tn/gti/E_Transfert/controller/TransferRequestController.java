@@ -131,4 +131,11 @@ public class TransferRequestController {
         headers.setContentDispositionFormData("attachment", document.getFileName());
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
+
+    @DeleteMapping("/batch")
+    public ResponseEntity<Void> deleteSelected(@RequestBody List<Long> ids) {
+        transferRequestService.deleteMultipleTransferRequests(ids);
+        return ResponseEntity.noContent().build();
+    }
+
 }

@@ -1,5 +1,6 @@
 package tn.gti.E_Transfert.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -155,9 +156,19 @@ public class TransferRequestService {
             }
             modelMapper.map(requestDTO, existing);
             log.debug("After mapping DTO to existing: {}", existing);
+
+            // Update beneficiary
             Beneficiary beneficiary = beneficiaryRepository.findById(requestDTO.getBeneficiaryId())
                     .orElseThrow(() -> new TransferException("Beneficiary not found with ID: " + requestDTO.getBeneficiaryId()));
             existing.setBeneficiary(beneficiary);
+
+            // Update user if a new userId is provided
+            if (requestDTO.getUserId() != null && !requestDTO.getUserId().equals(existing.getUser().getId())) {
+                User newUser = userRepository.findById(requestDTO.getUserId())
+                        .orElseThrow(() -> new TransferException("User not found with ID: " + requestDTO.getUserId()));
+                existing.setUser(newUser);
+            }
+
             TransferRequest saved = transferRequestRepository.save(existing);
             log.debug("Saved TransferRequest: {}", saved);
             TransferRequestResponseDTO dto = modelMapper.map(saved, TransferRequestResponseDTO.class);
@@ -168,7 +179,6 @@ public class TransferRequestService {
             throw new TransferException("Failed to update transfer request with ID: " + id, e);
         }
     }
-
     private void validateCreateDTO(TransferRequestRequestDTO requestDTO) {
         if (requestDTO.getBeneficiary() == null) {
             throw new TransferException("Beneficiary is required");
@@ -395,5 +405,21 @@ public class TransferRequestService {
             log.error("Failed to read file content: {}", filePath, e);
             throw new TransferException("Failed to read file content: " + filePath, e);
         }
+    }
+
+    // New method for batch deletion
+    @Transactional
+    public void deleteMultipleTransferRequests(List<Long> ids) {
+        List<TransferRequest> transferRequests = transferRequestRepository.findAllById(ids);
+        if (transferRequests.size() != ids.size()) {
+            List<Long> foundIds = transferRequests.stream()
+                    .map(TransferRequest::getIdTransferRequest)
+                    .collect(Collectors.toList());
+            List<Long> missingIds = ids.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .collect(Collectors.toList());
+            throw new EntityNotFoundException("Some transfer requests not found: " + missingIds);
+        }
+        transferRequestRepository.deleteAll(transferRequests);
     }
 }
