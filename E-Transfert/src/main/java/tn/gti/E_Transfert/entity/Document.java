@@ -38,4 +38,9 @@ public class Document {
     @JsonIgnore
     private TransferRequest transferRequest;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "appointment_id", nullable = true)
+    @JsonIgnore
+    private Appointment appointment;
+
 }

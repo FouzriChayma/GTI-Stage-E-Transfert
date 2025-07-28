@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers("/api/auth/users/**").permitAll() //hasRole("ADMINISTRATOR")
                         .requestMatchers("/api/transfer-requests/**").permitAll()
+                        .requestMatchers("/api/appointments/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
