@@ -55,6 +55,4 @@ public class Appointment {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Document> relatedDocuments = new ArrayList<>();
 }

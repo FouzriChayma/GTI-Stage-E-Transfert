@@ -32,11 +32,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // Add this
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
-                        .requestMatchers("/api/auth/users/**").permitAll() //hasRole("ADMINISTRATOR")
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh-token").permitAll()
+                        .requestMatchers("/api/auth/me").authenticated()
+                        .requestMatchers("/api/auth/users/**").hasRole("ADMINISTRATOR")
+                        .requestMatchers("/api/auth/users/{id}/profile-photo").authenticated()
                         .requestMatchers("/api/transfer-requests/**").permitAll()
                         .requestMatchers("/api/appointments/**").permitAll()
                         .anyRequest().authenticated()
@@ -46,7 +48,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Add this CORS configuration source
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

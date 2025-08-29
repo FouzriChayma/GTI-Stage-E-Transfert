@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +30,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -154,6 +158,17 @@ public class UserService {
         return response;
     }
 
+    @Transactional
+    public void revokeRefreshToken(String refreshToken) {
+        log.info("Revoking refresh token");
+        refreshTokenRepository.findByToken(refreshToken)
+                .ifPresent(token -> {
+                    token.setRevoked(true);
+                    refreshTokenRepository.save(token);
+                });
+    }
+
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
         log.info("Retrieving all users");
         try {
@@ -166,6 +181,7 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserById(Long id) {
         log.info("Retrieving user with ID: {}", id);
         User user = userRepository.findById(id)
@@ -173,9 +189,35 @@ public class UserService {
         return modelMapper.map(user, UserResponseDTO.class);
     }
 
+    @Transactional(readOnly = true)
+    public UserResponseDTO getCurrentUserProfile() {
+        log.info("Retrieving current user profile");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            String email = auth.getName();
+            Long userId = (Long) ((Map<String, Object>) auth.getDetails()).get("userId");
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new TransferException("User not found"));
+            return modelMapper.map(user, UserResponseDTO.class);
+        }
+        throw new TransferException("No authenticated user found");
+    }
+
     public UserResponseDTO updateUser(Long id, UserRequestDTO requestDTO) {
         log.info("Updating user with ID: {}", id);
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Long authenticatedUserId = (Long) ((Map<String, Object>) auth.getDetails()).get("userId");
+            String role = auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .findFirst()
+                    .orElse("")
+                    .replace("ROLE_", "");
+
+            if (!authenticatedUserId.equals(id) && !role.equals("ADMINISTRATOR")) {
+                throw new TransferException("Unauthorized to update this user");
+            }
+
             User existing = userRepository.findById(id)
                     .orElseThrow(() -> new TransferException("User not found with ID: " + id));
 
@@ -210,6 +252,17 @@ public class UserService {
     public void deleteUser(Long id) {
         log.info("Deleting user with ID: {}", id);
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String role = auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .findFirst()
+                    .orElse("")
+                    .replace("ROLE_", "");
+
+            if (!role.equals("ADMINISTRATOR")) {
+                throw new TransferException("Unauthorized to delete users");
+            }
+
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new TransferException("User not found with ID: " + id));
             if (user.getProfilePhotoPath() != null) {
@@ -232,6 +285,18 @@ public class UserService {
     public UserResponseDTO uploadProfilePhoto(Long id, MultipartFile file) {
         log.info("Uploading profile photo for user with ID: {}", id);
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Long authenticatedUserId = (Long) ((Map<String, Object>) auth.getDetails()).get("userId");
+            String role = auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .findFirst()
+                    .orElse("")
+                    .replace("ROLE_", "");
+
+            if (!authenticatedUserId.equals(id) && !role.equals("ADMINISTRATOR")) {
+                throw new TransferException("Unauthorized to upload photo for this user");
+            }
+
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new TransferException("User not found with ID: " + id));
 
@@ -243,6 +308,10 @@ public class UserService {
             if (!allowedTypes.contains(file.getContentType())) {
                 log.error("Invalid file type: {}. Allowed types are: {}", file.getContentType(), allowedTypes);
                 throw new TransferException("Invalid file type. Only PNG and JPEG are allowed");
+            }
+            if (file.getSize() > 5 * 1024 * 1024) { // 5MB limit
+                log.error("File size exceeds 5MB: {}", file.getSize());
+                throw new TransferException("File size exceeds 5MB");
             }
 
             Path uploadPath = Paths.get(uploadDir);
@@ -269,9 +338,22 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public byte[] getProfilePhotoContent(Long id) {
         log.info("Retrieving profile photo for user with ID: {}", id);
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Long authenticatedUserId = (Long) ((Map<String, Object>) auth.getDetails()).get("userId");
+            String role = auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .findFirst()
+                    .orElse("")
+                    .replace("ROLE_", "");
+
+            if (!authenticatedUserId.equals(id) && !role.equals("ADMINISTRATOR")) {
+                throw new TransferException("Unauthorized to access this user's photo");
+            }
+
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new TransferException("User not found with ID: " + id));
             if (user.getProfilePhotoPath() == null) {
@@ -293,6 +375,18 @@ public class UserService {
     public void deleteProfilePhoto(Long id) {
         log.info("Deleting profile photo for user with ID: {}", id);
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Long authenticatedUserId = (Long) ((Map<String, Object>) auth.getDetails()).get("userId");
+            String role = auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .findFirst()
+                    .orElse("")
+                    .replace("ROLE_", "");
+
+            if (!authenticatedUserId.equals(id) && !role.equals("ADMINISTRATOR")) {
+                throw new TransferException("Unauthorized to delete this user's photo");
+            }
+
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new TransferException("User not found with ID: " + id));
             if (user.getProfilePhotoPath() == null) {

@@ -4,9 +4,11 @@ package tn.gti.E_Transfert.controller;
 import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tn.gti.E_Transfert.dto.request.AppointmentRequestDTO;
 import tn.gti.E_Transfert.dto.response.AppointmentResponseDTO;
 import tn.gti.E_Transfert.enums.AppointmentStatus;
@@ -28,21 +30,37 @@ public class AppointmentController {
         return new ResponseEntity<>(appointmentService.scheduleAppointment(requestDTO), HttpStatus.CREATED);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<AppointmentResponseDTO> getAppointment(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.getAppointment(id));
+    }
+
     @PutMapping("/{id}")
     @Validated({AppointmentRequestDTO.Update.class, Default.class})
-    public ResponseEntity<AppointmentResponseDTO> updateAppointment(@PathVariable Long id, @RequestBody AppointmentRequestDTO requestDTO) {
+    public ResponseEntity<AppointmentResponseDTO> updateAppointment(
+            @PathVariable Long id,
+            @RequestBody AppointmentRequestDTO requestDTO) {
         return ResponseEntity.ok(appointmentService.updateAppointment(id, requestDTO));
     }
 
+    @DeleteMapping("/batch")
+    public ResponseEntity<Void> deleteMultipleAppointments(@RequestBody List<Long> ids) {
+        appointmentService.deleteMultipleAppointments(ids);
+        return ResponseEntity.noContent().build();
+    }
+    // ✅ Hard delete: really removes the row
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelAppointment(@PathVariable Long id) {
-        appointmentService.cancelAppointment(id);
+    public ResponseEntity<Void> deleteAppointment(@PathVariable Long id) {
+        appointmentService.deleteAppointment(id);
         return ResponseEntity.noContent().build();
     }
 
+
+
     @GetMapping("/available")
     public ResponseEntity<List<AppointmentResponseDTO>> getAvailableSlots(
-            @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+            @RequestParam LocalDateTime start,
+            @RequestParam LocalDateTime end) {
         return ResponseEntity.ok(appointmentService.getAvailableSlots(start, end));
     }
 
@@ -51,7 +69,6 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.getUserAppointments(userId));
     }
 
-    // New search endpoint
     @GetMapping("/search")
     public ResponseEntity<List<AppointmentResponseDTO>> searchAppointments(
             @RequestParam(required = false) Long userId,
@@ -62,6 +79,8 @@ public class AppointmentController {
             @RequestParam(required = false) Boolean isNotified) {
         List<AppointmentResponseDTO> appointments = appointmentService.searchAppointments(
                 userId, startDate, endDate, status, notes, isNotified);
-        return appointments.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(appointments);
+        return appointments.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(appointments);
     }
 }

@@ -1,4 +1,3 @@
-// src/main/java/tn/gti/E_Transfert/service/AppointmentService.java
 package tn.gti.E_Transfert.service;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -16,7 +15,7 @@ import tn.gti.E_Transfert.entity.User;
 import tn.gti.E_Transfert.enums.AppointmentStatus;
 import tn.gti.E_Transfert.exception.TransferException;
 import tn.gti.E_Transfert.repository.AppointmentRepository;
-import tn.gti.E_Transfert.repository.AppointmentSpecification; // Add this import
+import tn.gti.E_Transfert.repository.AppointmentSpecification;
 import tn.gti.E_Transfert.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -68,10 +67,18 @@ public class AppointmentService {
             throw new TransferException("Cannot update completed or cancelled appointment");
         }
 
+        // Check if appointmentDateTime has changed
+        boolean isRescheduled = !existing.getAppointmentDateTime().equals(requestDTO.getAppointmentDateTime());
+
         modelMapper.map(requestDTO, existing);
         existing.setUser(userRepository.findById(requestDTO.getUserId())
                 .orElseThrow(() -> new TransferException("User not found with ID: " + requestDTO.getUserId())));
         existing.setUpdatedAt(LocalDateTime.now());
+
+        // Set status to RESCHEDULED if the date/time changed and status is not already RESCHEDULED
+        if (isRescheduled && existing.getStatus() != AppointmentStatus.RESCHEDULED) {
+            existing.setStatus(AppointmentStatus.RESCHEDULED);
+        }
 
         Appointment saved = appointmentRepository.save(existing);
         AppointmentResponseDTO dto = modelMapper.map(saved, AppointmentResponseDTO.class);
@@ -87,6 +94,7 @@ public class AppointmentService {
         appointment.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
     }
+
 
     public List<AppointmentResponseDTO> getAvailableSlots(LocalDateTime start, LocalDateTime end) {
         log.info("Retrieving available slots from {} to {}", start, end);
@@ -112,7 +120,6 @@ public class AppointmentService {
                 .collect(Collectors.toList());
     }
 
-    // New method for searching appointments
     public List<AppointmentResponseDTO> searchAppointments(
             Long userId,
             LocalDateTime startDate,
@@ -176,5 +183,37 @@ public class AppointmentService {
     public Map<AppointmentStatus, Long> getAppointmentTrends() {
         return appointmentRepository.findAll().stream()
                 .collect(Collectors.groupingBy(Appointment::getStatus, Collectors.counting()));
+    }
+
+    public AppointmentResponseDTO getAppointment(Long id) {
+        log.info("Retrieving appointment with ID: {}", id);
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new TransferException("Appointment not found with ID: " + id));
+        AppointmentResponseDTO dto = modelMapper.map(appointment, AppointmentResponseDTO.class);
+        dto.setUser(modelMapper.map(appointment.getUser(), UserResponseDTO.class));
+        return dto;
+    }
+
+
+    // ✅ Hard delete
+    public void deleteAppointment(Long id) {
+        log.info("Deleting appointment with ID: {}", id);
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new TransferException("Appointment not found with ID: " + id));
+        appointmentRepository.delete(appointment);
+    }
+    public void deleteMultipleAppointments(List<Long> ids) {
+        log.info("Deleting multiple appointments with IDs: {}", ids);
+        List<Appointment> appointments = appointmentRepository.findAllById(ids);
+        if (appointments.size() != ids.size()) {
+            List<Long> foundIds = appointments.stream()
+                    .map(Appointment::getIdAppointment)
+                    .collect(Collectors.toList());
+            List<Long> missingIds = ids.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .collect(Collectors.toList());
+            throw new TransferException("Appointments not found with IDs: " + missingIds);
+        }
+        appointmentRepository.deleteAll(appointments);
     }
 }

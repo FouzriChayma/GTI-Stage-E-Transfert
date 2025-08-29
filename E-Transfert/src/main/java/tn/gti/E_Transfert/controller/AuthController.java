@@ -43,33 +43,33 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping(value = "/users/{id}/profile-photo", consumes = {"multipart/form-data"})
-    public ResponseEntity<UserResponseDTO> uploadProfilePhoto(
-            @PathVariable Long id,
-            @RequestPart("file") MultipartFile file) {
-        UserResponseDTO response = userService.uploadProfilePhoto(id, file);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/users/{id}/profile-photo")
-    public ResponseEntity<byte[]> getProfilePhoto(@PathVariable Long id) {
-        byte[] photoContent = userService.getProfilePhotoContent(id);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_JPEG);
-        headers.setContentDispositionFormData("attachment", "profile_photo.jpg");
-        return new ResponseEntity<>(photoContent, headers, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/users/{id}/profile-photo")
-    public ResponseEntity<Void> deleteProfilePhoto(@PathVariable Long id) {
-        userService.deleteProfilePhoto(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @PostMapping("/login")
     public ResponseEntity<UserResponseDTO> login(@Valid @RequestBody UserLoginDTO loginDTO) {
         UserResponseDTO response = userService.authenticateUser(loginDTO);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<UserResponseDTO> refreshToken(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new TransferException("Refresh token is required");
+        }
+        return ResponseEntity.ok(userService.refreshAccessToken(refreshToken));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        if (refreshToken != null) {
+            userService.revokeRefreshToken(refreshToken);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> getCurrentUser() {
+        return ResponseEntity.ok(userService.getCurrentUserProfile());
     }
 
     @GetMapping("/users")
@@ -93,12 +93,27 @@ public class AuthController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-    @PostMapping("/refresh-token")
-    public ResponseEntity<UserResponseDTO> refreshToken(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            throw new TransferException("Refresh token is required");
-        }
-        return ResponseEntity.ok(userService.refreshAccessToken(refreshToken));
+
+    @PostMapping(value = "/users/{id}/profile-photo", consumes = {"multipart/form-data"})
+    public ResponseEntity<UserResponseDTO> uploadProfilePhoto(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file) {
+        UserResponseDTO response = userService.uploadProfilePhoto(id, file);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/users/{id}/profile-photo")
+    public ResponseEntity<byte[]> getProfilePhoto(@PathVariable Long id) {
+        byte[] photoContent = userService.getProfilePhotoContent(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+        headers.setContentDispositionFormData("attachment", "profile_photo.jpg");
+        return new ResponseEntity<>(photoContent, headers, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/users/{id}/profile-photo")
+    public ResponseEntity<Void> deleteProfilePhoto(@PathVariable Long id) {
+        userService.deleteProfilePhoto(id);
+        return ResponseEntity.noContent().build();
     }
 }
